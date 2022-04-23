@@ -11,7 +11,7 @@ In this course we will discussing how -omics have helped us answer questions rel
 
 ### Day 2
 
-Practical: [01: Exploring RNAseq Counts](/exercises/01_explore_counts.html){:target="_blank"}
+Practical: [01: Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"}
 
 ### Day 3
 
