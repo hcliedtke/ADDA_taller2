@@ -11,9 +11,29 @@ In this course we will discussing how -omics have helped us answer questions rel
 
 ### Day 2
 
-Practical: [01: Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"}
+#### Discussion
+
+#### Lecture
+
+* [Pigmenation plasticity in Spadefoot toads]()
+
+#### Practicals
+
+* [01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"}
 
 ### Day 3
 
+#### Practicals
+
+* [02 - Differential Gene Expression](./exercises/02_deg.html){:target="_blank"}
+* [03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"}
 
 ### Day 4
+
+#### Practicals
+
+* [04 - Functional Enrichment](./exercises/04_functional_enrichment.html){:target="_blank"}
+
+#### Wrapping up
+
+We hope you have gotten a flavour of how we can leverage RNAseq to study developmental plasticity in non-model organisms. 
