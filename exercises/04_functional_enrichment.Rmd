@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       eval = FALSE,
                       message=FALSE,
                       error=FALSE)
+knitr::opts_knit$set(root.dir = '../')
 library("webexercises")
 ```
 
@@ -26,7 +27,7 @@ Set your working directory and load the libraries we need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Dropbox/US_bioinformatics/practical/rnaseq_practical/")
+setwd("~/Documents/git_projects/ADDA_taller2_2022/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
@@ -57,10 +58,10 @@ Let's load the results files we need.
 
 ```{r}
 # the list of DEG results from the previous exercises
-res<-readRDS("deseq2_results.rds")
+res<-readRDS("./results/deseq2_results.rds")
 
 # the annotations
-xtrop<-read_csv("data/PCU23_annotations_xtr105.csv")
+xtrop<-read_csv("./data/PCU23_annotations_xtr105.csv")
 ```
 
 ## Prepare gene sets and background

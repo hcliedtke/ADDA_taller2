@@ -12,8 +12,7 @@ editor_options:
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      #results = "hide",
-                      eval = TRUE,
+                      eval = FALSE,
                       message=FALSE,
                       error=FALSE)
 knitr::opts_knit$set(root.dir = '../')
@@ -33,7 +32,7 @@ setwd("~/Documents/git_projects/ADDA_taller2_2022/")
 if (!require("pacman")) install.packages("pacman")
 
 # use pacman to load libraries
-pacman::p_load(tidyverse, DESeq2, apeglm)
+pacman::p_load(tidyverse, DESeq2,viridis,scales)
 
 ```
 
@@ -85,33 +84,56 @@ We can now combine the design matrix and the expression data into a format that 
 dds <- DESeqDataSetFromTximport(txi,
                          colData = samples,
                          design = ~ condition)
-
-dds
 ```
 
 The dataset should have successfully been stored as a `DESeqDataSet` object. You should see that it has imported the `counts` and the `length` data from the `txi` object and the sample information from the design matrix. lets take a look at this object:
 
 ```{r}
-str(dds)
+dds
 ```
 
 You may have seen this type of object before, but it most likely is not as common as other types.
 
-> _Question:_ What is this kind of object? Is there anything you are unfamiliar with?
+> _Question:_ What is the structure of this object? Is there anything you are unfamiliar with?
 
 `r hide("Show Answer")`
 
 It is an S4 object system. R has three object oriented systems: S3, S4 and R5. You can read up about them [here](http://adv-r.had.co.nz/OO-essentials.html). For now, you just need to know that most often you will work with S3 objects, which can be conveniently accessed with `$` for example. S4 objects are a little different. They usually have data stored in "slots" which are indicated with `@`.
 `r unhide()`
 
-Working with this type of object sometimes requires specific "accessor" functions (or methods) to get at data stored in 'slots'. For example, the `dds` object we created, has two assays: `counts` and `avgTxLength`. We can access them with the appropriately named functions, some specific, others more general: 
+
+More specifically, it is a subclass of `RangedSummarizedExperiment`.
+
+![](../assets/img/RangedSummarizedExperiment.png)
+
+This is a format widely used by packages in the Bioconductor ecosystem. The core of the object are assays (a single or multiple matrices) with samples as columns and freatures as rows. Features in this case are our genes or transcripts, but they may also be chromosomal coordinates etc. 
+
+Working with this type of object sometimes requires specific "accessor" functions (or methods) to get at data stored in 'slots'. For example, the `dds` object we created, has two assays: `counts` and `avgTxLength`. We can access them with `assays()` function (note: different from `assay()`), or specific functions for specific assays (if these are available)
 
 ```{r}
-counts(dds) %>% head() # uses counts() function to specifically extract the counts
+names(assays(dds)) # list the stored assays
 assays(dds)[["avgTxLength"]] %>% head() # uses assays() function with typical indexing operators.
+counts(dds) %>% head() # uses counts() function to specifically extract the counts
 ```
 
-> _Question:_ What is different about this count data compared to the raw count data we imported?
+We can also access information about the columns:
+
+```{r}
+colData(dds)
+```
+
+In this case, this is the experimental information we provided with the design matrix!
+
+And we can also access the row data (in this case it is empty).
+
+```{r}
+rowData(dds)
+```
+
+Feel free to read up more on this kind of `SummarizedExperiment` data object [here](https://bioconductor.org/packages/devel/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html).
+
+  
+> _Question:_ What is different about count data stored in the dds object compared to the raw count data we imported?
 
 `r hide("Show Answer")`
 
@@ -119,7 +141,8 @@ assays(dds)[["avgTxLength"]] %>% head() # uses assays() function with typical in
 head(counts(dds))
 head(txi$counts)
 ```
-The decimal counts have been rounded off to make them integers.
+
+One of the The decimal counts have been rounded off to make them integers.
 `r unhide()`
 
 
@@ -181,7 +204,7 @@ $adjusted\ p\ value = p\ value * \frac{total\ number\ of\ tests}{rank}$
   
 In short, `DESeq2` does the following:
 
-1. Estimation of size factors (for normalize counts)
+1. Estimation of size factors (control for differences in the library size of the sequencing experiments)
 2. Estimation of dispersion (e.g. for problem of large within-group variability and low sample sizes)
 3. Negative binomial GLM fitting (good for modeling discrete counts with over-dispersion)
 4. Wald statistics calculation and multiple testing correction (statistical significance testing)
@@ -227,7 +250,7 @@ If we don't specify anything else, it will extract just the first comparison. In
 
 1. Rows are genes.
 2. Per gene, there are 6 metrics:
-  * baseMean: mean of normalized counts for all samples
+  * baseMean: mean of normalized counts for all samples divided by size factor
   * log2FoldChange: The effect size estimate. This value indicates how much the gene or transcript's expression seems to have changed between the comparison and control groups. This value is reported on a logarithmic scale to base 2.
   * lfcSE: The standard error estimate for the log2 fold change estimate
   * stat: The value of the test statistic for the gene or transcript.
@@ -300,6 +323,8 @@ This returns the number of up-regulated genes (LFC>0) and down-regulated genes (
 It seems like the dorsal vs. ventral comparisons are producing many more up and down regulated genes than the black vs. white comparison. We should have expected this, given the PCA. This indicates that not all skin is the same! At the level of gene expression, the change in pigmentation on the dorsum is minimal compared to the difference in gene expression between dorsal and ventral skin of much similar colour!
 `r unhide()`
 
+## Diagnostics
+
 At this point, we can do some quality checks, to make sure that all of the steps that `DESeq2 `has done, worked as expected. For example:
 
 ### P-value distributions
@@ -358,7 +383,7 @@ All-in-all it looks good!
 Only a single binomial model is fitted to each gene, i.e. there is only a single dispersion estiamte and mean normalized count across all samples per gene.
 `r unhide()`
 
-## Exploring log2 fold changes
+## MA plots
 
 The typical plot to show the distribution of differentially expressed genes, is a "MA-plot". Here, we plot the mean of normalized counts again, but this time against the log fold change:
 
@@ -373,73 +398,35 @@ par(mfrow=c(1,1))
 ```
 
 
-> _Question:_ What can we say from these plots?
+> _Question:_ Have you seen this kind of plot before? What can we say from these plots?
 
 `r hide("Show Answer")`
+* It demonstrates that only genes with a large average normalized count contain sufficient information to be significant
 * The same as from the summary() function:
   * Dorsal-ventral comparisons result in more differentially expressed genes (DEGs), than black-white comparisons?
   * DEGs are more or less evenly up (positive fold changes) and down (negative fold changes) regulated for each comparison
 * There is a lot of noise for genes with genes with low normalized counts. The fold changes are *not* shrunk.
 `r unhide()`
 
-### Shrinkage
 
-The DESeq2 package incorporates a prior on log2 fold changes, resulting in moderated estimates from genes with low counts and highly variable counts, as can be seen by the narrowing of spread of points on the left side of the plot. This is called "shrinkage" and is done to avoid that these values, which otherwise would frequently be unrealistically large, dominate the top-ranked log fold changes.
-
-A useful exercise to reduce the noise of the low-count genes is therefore to apply a shrinkage method. The most widely used type is the `apglm` method.
+We can squeeze even more information out of these kinds of plots.
 
 ```{r}
-# apeglm shrinkage can only be done on already calculated coefficients:
-resultsNames(dds)
-
-# without shrinkage:
-bD_bV_res<-results(dds,
-                   name="condition_white_ventral_vs_black_dorsal")
-
-bD_bV_res
-
-# with shrinkage
-bD_bV_shr<-lfcShrink(dds,
-                   coef="condition_white_ventral_vs_black_dorsal",
-                   type="apeglm")
-bD_bV_shr
+res_bD_bV %>%
+  as.data.frame() %>%
+  ggplot(aes(baseMean, log2FoldChange, colour=padj)) +
+  geom_point(size=1) + 
+  scale_y_continuous(limits=c(-3, 3), oob=squish) + # oob from the scales package is needed to "squish" points falling outside the axis limits
+  scale_x_log10() +
+  geom_hline(yintercept = 0, colour="red", size=1, linetype="longdash") +
+  labs(x="mean of normalized counts", y="log fold change") +
+  scale_colour_viridis(direction=-1, trans='sqrt') +
+  geom_density_2d(colour="blue", size=0.5) +
+  theme_bw()
 ```
 
-This produces the same type of "results" object, but you should notice that the first object shows the maximum likelihood estimates (MLE) of the fold change, whereas the second shows the shrunk (MAP) fold changes.
+Here, we can see more clearly that genes with low counts do not have p-adjusted values (points in grey). The  density contours are also centered around a y-intercept of 0 (most genes are not differentially expressed)
 
-> _Question:_ How do the fold changes and adjusted p-values compare?
-`r hide("Show Answer")`
-
-```{r}
-par(mfrow=c(1,2))
-par(mar=c(4,4,1,1))
-# p values
-plot(bD_bV_res$padj~bD_bV_shr$padj,
-     xlab="adjusted p-value (shrunk)",
-     ylab="adjusted p-value (MLE)")
-# fold changes
-plot(bD_bV_res$log2FoldChange~bD_bV_shr$log2FoldChange,
-     xlab="Fold Change (shrunk)",
-     ylab="Fold Change (MLE)")
-par(mfrow=c(1,1))
-```
-
-* The p-values do not change! The number of significantly DEGs is therefore not affected by shrinkage
-* intermediate absolute fold changes are similar, but genes whose fold changes are very large, are pulled towards 0 with the shrinkage.
-`r unhide()`
-
-The differences become very clear when repeating the MA-plot
-
-```{r}
-par(mfrow=c(1,2))
-par(mar=c(4,4,4,1))
-DESeq2::plotMA(bD_bV_res, main="MLE")
-DESeq2::plotMA(bD_bV_shr, main="MAP")
-```
-
-Very often you will see the shrinkage versions of MA-plots, simply because they allow for a more pleasing visualization of the significant genes.  
-
-Shrinkage can also be useful if you wish to rank genes based on their effect sizes.
 
 ## Exporting data
 

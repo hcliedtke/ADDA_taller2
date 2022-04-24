@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       eval = FALSE,
                       message=FALSE,
                       error=FALSE)
+knitr::opts_knit$set(root.dir = '../')
 library("webexercises")
 ```
 
@@ -26,13 +27,13 @@ Set your working directory and load the libraries we will need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Dropbox/US_bioinformatics/practical/rnaseq_practical/")
+setwd("~/Documents/git_projects/ADDA_taller2_2022/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
 
 # use pacman to load libraries
-pacman::p_load(tidyverse,DESeq2, ggVennDiagram, UpSetR,plotly,ggrepel)
+pacman::p_load(tidyverse,DESeq2, ageglm,ggVennDiagram, UpSetR,plotly,ggrepel)
 
 ```
 
@@ -47,11 +48,14 @@ The aim of this exercise is to explore these results in greater detail. To do th
 Let's load the results files from the previous exercise, plus a file with annotations.
 
 ```{r}
+# DEG object
+dds<-readRDS("./results/deseq2_dds.rds")
+
 # the list of DEG results
-res<-readRDS("deseq2_results.rds")
+res<-readRDS("./results/deseq2_results.rds")
 
 # Load BLAST results
-xtrop<-read_csv("data/PCU23_annotations_xtr105.csv")
+xtrop<-read_csv("./data/PCU23_annotations_xtr105.csv")
 ```
 
 ### A comment on the annotation file
@@ -163,8 +167,73 @@ upset(fromList(sig_deg),
 * The information shown is pretty much the same. The only additional information shown is the set size (the horizontal barplot).
 `r unhide()`
 
-
 ## Plotting fold changes
+
+### MA plot
+
+In the previous exercise, we looked at MA-plots. We used them mostly as a diagnostic plot, but very often, you will also see them in publications, to display a ratio of gene expression (the fold change) against the mean expression of that gene (base mean). Let's quickly remind us what this looks like:
+
+```{r}
+DESeq2::plotMA(res$bD_bV)
+```
+
+Here, the "noise" of genes with low counts is over-powering the plot.
+
+The DESeq2 package incorporates a prior on log2 fold changes, resulting in moderated estimates from genes with low counts and highly variable counts, as can be seen by the narrowing of spread of points on the left side of the MA plot. This is called "shrinkage" and is done to avoid that these values, which otherwise would frequently be unrealistically large, dominate the top-ranked log fold changes.
+
+A useful exercise to reduce the noise of the low-count genes is to apply a more aggressive shrinkage method. The most widely used type is the `apglm` method.
+
+```{r}
+# apeglm shrinkage can only be done on already calculated coefficients:
+resultsNames(dds)
+
+bD_bV_res <- results(dds,
+                     contrast= c("condition","white_ventral", "black_dorsal"))
+
+bD_bV_res
+# with shrinkage
+bD_bV_shr<-lfcShrink(dds,
+                   coef="condition_white_ventral_vs_black_dorsal",
+                   type="apeglm")
+bD_bV_shr
+```
+
+This produces the same type of "results" object, but you should notice that the first object shows the maximum likelihood estimates (MLE) of the fold change, whereas the second shows the shrunk (MAP) fold changes.
+
+The differences become very clear when repeating the MA-plot
+
+```{r}
+par(mfrow=c(1,2))
+par(mar=c(4,4,4,1))
+DESeq2::plotMA(bD_bV_res, main="MLE")
+DESeq2::plotMA(bD_bV_shr, main="MAP")
+```
+
+Very often you will see the shrinkage versions of MA-plots, simply because they allow for a more pleasing visualization of the significant genes.
+
+> _Question:_ How do the fold changes and adjusted p-values compare?
+`r hide("Show Answer")`
+
+```{r}
+par(mfrow=c(1,2))
+par(mar=c(4,4,1,1))
+# p values
+plot(bD_bV_res$padj~bD_bV_shr$padj,
+     xlab="adjusted p-value (shrunk)",
+     ylab="adjusted p-value (MLE)")
+# fold changes
+plot(bD_bV_res$log2FoldChange~bD_bV_shr$log2FoldChange,
+     xlab="Fold Change (shrunk)",
+     ylab="Fold Change (MLE)")
+par(mfrow=c(1,1))
+```
+
+* The p-values do not change! The number of significantly DEGs is therefore not affected by shrinkage
+* intermediate absolute fold changes are similar, but genes whose fold changes are very large, are pulled towards 0 with the shrinkage.
+`r unhide()`
+
+
+### Volcano plot
 
 A plot you may also have seen is a "Volcano" plot, where you are showing the log fold change plotted against the adjusted p-values per gene. To make small p-values very large, the p-values are usually -log10() transformed. The most basic plot would look like this:
 

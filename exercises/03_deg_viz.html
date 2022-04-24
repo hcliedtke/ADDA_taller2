@@ -182,13 +182,23 @@ Estación Biológica de Doñana<br><h4 class="date">2022-04-04</h4>
 <h4>Prepare environment</h4>
 <p>Set your working directory and load the libraries we will need.</p>
 <pre class="r"><code># set working directory
-setwd(&quot;~/Dropbox/US_bioinformatics/practical/rnaseq_practical/&quot;)
+setwd(&quot;~/Documents/git_projects/ADDA_taller2_2022/&quot;)
 
 # install pacman if not already installed
 if (!require(&quot;pacman&quot;)) install.packages(&quot;pacman&quot;)
 
 # use pacman to load libraries
-pacman::p_load(tidyverse,DESeq2, ggVennDiagram, UpSetR,plotly,ggrepel)</code></pre>
+pacman::p_load(tidyverse,DESeq2, ageglm,ggVennDiagram, UpSetR,plotly,ggrepel)</code></pre>
+<pre><code>## Warning: package &#39;ageglm&#39; is not available for this version of R
+## 
+## A version of this package for your version of R might be available elsewhere,
+## see the ideas at
+## https://cran.r-project.org/doc/manuals/r-patched/R-admin.html#Installing-packages</code></pre>
+<pre><code>## Warning in p_install(package, character.only = TRUE, ...):</code></pre>
+<pre><code>## Warning in library(package, lib.loc = lib.loc, character.only = TRUE,
+## logical.return = TRUE, : there is no package called &#39;ageglm&#39;</code></pre>
+<pre><code>## Warning in pacman::p_load(tidyverse, DESeq2, ageglm, ggVennDiagram, UpSetR, : Failed to install/load:
+## ageglm</code></pre>
 </div>
 <div id="background" class="section level2">
 <h2>Background</h2>
@@ -198,11 +208,14 @@ pacman::p_load(tidyverse,DESeq2, ggVennDiagram, UpSetR,plotly,ggrepel)</code></p
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
 <p>Let&#39;s load the results files from the previous exercise, plus a file with annotations.</p>
-<pre class="r"><code># the list of DEG results
-res&lt;-readRDS(&quot;deseq2_results.rds&quot;)
+<pre class="r"><code># DEG object
+dds&lt;-readRDS(&quot;./results/deseq2_dds.rds&quot;)
+
+# the list of DEG results
+res&lt;-readRDS(&quot;./results/deseq2_results.rds&quot;)
 
 # Load BLAST results
-xtrop&lt;-read_csv(&quot;data/PCU23_annotations_xtr105.csv&quot;)</code></pre>
+xtrop&lt;-read_csv(&quot;./data/PCU23_annotations_xtr105.csv&quot;)</code></pre>
 <div id="a-comment-on-the-annotation-file" class="section level3">
 <h3>A comment on the annotation file</h3>
 <p>If we take a closer look at the annotation file, we should notice a few things:</p>
@@ -291,6 +304,58 @@ Show Answer
 </div>
 <div id="plotting-fold-changes" class="section level2">
 <h2>Plotting fold changes</h2>
+<div id="ma-plot" class="section level3">
+<h3>MA plot</h3>
+<p>In the previous exercise, we looked at MA-plots. We used them mostly as a diagnostic plot, but very often, you will also see them in publications, to display a ratio of gene expression (the fold change) against the mean expression of that gene (base mean). Let&#39;s quickly remind us what this looks like:</p>
+<pre class="r"><code>DESeq2::plotMA(res$bD_bV)</code></pre>
+<p>Here, the &quot;noise&quot; of genes with low counts is over-powering the plot.</p>
+<p>The DESeq2 package incorporates a prior on log2 fold changes, resulting in moderated estimates from genes with low counts and highly variable counts, as can be seen by the narrowing of spread of points on the left side of the MA plot. This is called &quot;shrinkage&quot; and is done to avoid that these values, which otherwise would frequently be unrealistically large, dominate the top-ranked log fold changes.</p>
+<p>A useful exercise to reduce the noise of the low-count genes is to apply a more aggressive shrinkage method. The most widely used type is the <code>apglm</code> method.</p>
+<pre class="r"><code># apeglm shrinkage can only be done on already calculated coefficients:
+resultsNames(dds)
+
+bD_bV_res &lt;- results(dds,
+                     contrast= c(&quot;condition&quot;,&quot;white_ventral&quot;, &quot;black_dorsal&quot;))
+
+bD_bV_res
+# with shrinkage
+bD_bV_shr&lt;-lfcShrink(dds,
+                   coef=&quot;condition_white_ventral_vs_black_dorsal&quot;,
+                   type=&quot;apeglm&quot;)
+bD_bV_shr</code></pre>
+<p>This produces the same type of &quot;results&quot; object, but you should notice that the first object shows the maximum likelihood estimates (MLE) of the fold change, whereas the second shows the shrunk (MAP) fold changes.</p>
+<p>The differences become very clear when repeating the MA-plot</p>
+<pre class="r"><code>par(mfrow=c(1,2))
+par(mar=c(4,4,4,1))
+DESeq2::plotMA(bD_bV_res, main=&quot;MLE&quot;)
+DESeq2::plotMA(bD_bV_shr, main=&quot;MAP&quot;)</code></pre>
+<p>Very often you will see the shrinkage versions of MA-plots, simply because they allow for a more pleasing visualization of the significant genes.</p>
+<blockquote>
+<p><em>Question:</em> How do the fold changes and adjusted p-values compare?</p>
+</blockquote>
+<div class="webex-solution">
+<button>
+Show Answer
+</button>
+<pre class="r"><code>par(mfrow=c(1,2))
+par(mar=c(4,4,1,1))
+# p values
+plot(bD_bV_res$padj~bD_bV_shr$padj,
+     xlab=&quot;adjusted p-value (shrunk)&quot;,
+     ylab=&quot;adjusted p-value (MLE)&quot;)
+# fold changes
+plot(bD_bV_res$log2FoldChange~bD_bV_shr$log2FoldChange,
+     xlab=&quot;Fold Change (shrunk)&quot;,
+     ylab=&quot;Fold Change (MLE)&quot;)
+par(mfrow=c(1,1))</code></pre>
+<ul>
+<li>The p-values do not change! The number of significantly DEGs is therefore not affected by shrinkage</li>
+<li>intermediate absolute fold changes are similar, but genes whose fold changes are very large, are pulled towards 0 with the shrinkage.</li>
+</ul>
+</div>
+</div>
+<div id="volcano-plot" class="section level3">
+<h3>Volcano plot</h3>
 <p>A plot you may also have seen is a &quot;Volcano&quot; plot, where you are showing the log fold change plotted against the adjusted p-values per gene. To make small p-values very large, the p-values are usually -log10() transformed. The most basic plot would look like this:</p>
 <pre class="r"><code>res$bD_bV %&gt;%
   as_tibble(rownames = &quot;gene_id&quot;) %&gt;%
@@ -371,6 +436,7 @@ Show Answer
 <li>It also involves carotenoids! (bco2l)</li>
 <li>There are many differentially expressed genes which may be important, but they are not annotated.</li>
 </ul>
+</div>
 </div>
 </div>
 

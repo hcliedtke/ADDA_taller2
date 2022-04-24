@@ -72,7 +72,7 @@ For those of you unfamiliar, `.rds` files is a single R data object, created wit
 
 `r hide("Show Answer")`
 
-```{r eval=TRUE}
+```{r}
 str(txi)
 lapply(X=txi, FUN=head)
 ```
@@ -87,7 +87,7 @@ lapply(X=txi, FUN=head)
  * The arrays have target transcripts as rows and biological samples per column.
  * Abundance: Abundance calculations from the quantifier (salmon). According to the [salmon documentions](https://salmon.readthedocs.io/en/latest/file_formats.html), this is TPM. We could check this be making sure columns add up to 1 million:
       
-```{r eval=TRUE}
+```{r}
 apply(X=txi$abundance, FUN=sum, MARGIN = 2)
 ```
 
@@ -103,13 +103,13 @@ In this case, they don't quite add up to 1 million because I have already filter
 > _Question:_ Does something seem strange about the counts? and the lengths?
 
 `r hide("Show Answer")`
-```{r eval=TRUE}
+```{r}
 head(txi$counts[1:5,])
 ```
 
 * The counts are not integers!! It is an “estimate” insofar as it is the expected number of reads that have originated from each transcript given the structure of the uniquely mapping and multi-mapping reads and the relative abundance estimates for each transcript.  
 
-```{r eval=TRUE}
+```{r}
 head(txi$length[1:5,])
 ```
 
@@ -142,7 +142,7 @@ Next, we may be curious as to whether there are some basic patterns in our data.
   
 Let's load our design matrix. This is a .csv file where we have included some information on what these samples actually are:
 
-```{r eval=TRUE}
+```{r}
 samples<-read.csv("./data/design_matrix.csv")
 ```
 
@@ -157,7 +157,7 @@ samples
 
 `r hide("Show Answer")`
 
-```{r eval=TRUE}
+```{r}
 colnames(samples)
 table(samples[,c("treatment","tissue")])
 ```
@@ -207,7 +207,7 @@ Notice that sample with "Li" are liver samples. perhaps drop the remaining colum
 `r unhide()`
 
 `r hide("Show Answer")`
-```{r eval=TRUE}
+```{r}
 # remove 0-variance genes and drop all non-liver samples
 tpm_liver<-txi$abundance %>%
   as.data.frame() %>%
@@ -307,6 +307,7 @@ pheatmap(tpm_subset,
 
 * It is important to spend some time looking at your data! Nowadays there are many pipelines that will process the whole RNAseq workflow from start to finish, but don't forget to actually look at your results in detail.
 * It is important to think about what comparisons you are trying to make. Here, we saw that the tissue effect is much stronger than the treatment effect. Unless it is a specific aim of yours to compare across tissues, you may want to run your analysis on each tissue independently.
-* There are many sources of information online. A practical guide that may be useful is the `Computational Genomics with R` [book](http://compgenomr.github.io/book/), especially the chapter on [RNA-Seq](http://compgenomr.github.io/book/rnaseqanalysis.html) by Bora Uyar.
+* Here, we explore patterns in gene expression, but we do not apply any specific tests. More importantly, we are using counts that have been normalized _within_ samples (TPM). It is generally adviced that these are not reliable when comparing _across_ samples! (We will come back to this in the next exercise).
+* There are many sources of information online. A practical guide that may be useful is the `Computational Genomics with R` [book](http://compgenomr.github.io/book/), especially the chapter on [RNA-Seq](http://compgenomr.github.io/book/rnaseqanalysis.html) by Bora Uyar. Galazy also has plenty of interesting documentation such as [this one](https://training.galaxyproject.org/training-material/topics/transcriptomics/tutorials/rb-rnaseq/tutorial.html).
 
 

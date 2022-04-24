@@ -182,7 +182,7 @@ Estación Biológica de Doñana<br><h4 class="date">2022-04-04</h4>
 <h4>Prepare environment</h4>
 <p>Set your working directory and load the libraries we need.</p>
 <pre class="r"><code># set working directory
-setwd(&quot;~/Dropbox/US_bioinformatics/practical/rnaseq_practical/&quot;)
+setwd(&quot;~/Documents/git_projects/ADDA_taller2_2022/&quot;)
 
 # install pacman if not already installed
 if (!require(&quot;pacman&quot;)) install.packages(&quot;pacman&quot;)
@@ -206,10 +206,10 @@ pacman::p_load(tidyverse,gprofiler2)</code></pre>
 <h2>Load data</h2>
 <p>Let&#39;s load the results files we need.</p>
 <pre class="r"><code># the list of DEG results from the previous exercises
-res&lt;-readRDS(&quot;deseq2_results.rds&quot;)
+res&lt;-readRDS(&quot;./results/deseq2_results.rds&quot;)
 
 # the annotations
-xtrop&lt;-read_csv(&quot;data/PCU23_annotations_xtr105.csv&quot;)</code></pre>
+xtrop&lt;-read_csv(&quot;./data/PCU23_annotations_xtr105.csv&quot;)</code></pre>
 </div>
 <div id="prepare-gene-sets-and-background" class="section level2">
 <h2>Prepare gene sets and background</h2>
