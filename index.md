@@ -9,37 +9,27 @@ In this course we will discussing how -omics have helped us answer questions rel
 
 ### Day 1
 
+* _Lecture:_ [Introduction to Eco-Evo-Devo](). [50 mins]
+* _Group Discussion:_ Using -omics to study developmental plasticity. [50 mins]
+  * Casasa, S., Zattara, E.E. & Moczek, A.P. (2020). Nutrition-responsive gene expression and the developmental evolution of insect polyphenism. Nature Ecology & Evolution, 4, 1–12.
+  * Liedtke, H.C., Harney, E. & Gomez-Mestre, I. (2021). Cross-species transcriptomics uncovers genes underlying genetic accommodation of developmental plasticity in spadefoot toads. Molecular Ecology, 30, 2220–2234.
+  * Wollenberg Valero, K.C., Garcia-Porta, J., guez, A.R.I., Arias, M.O.N., Shah, A., Randrianiaina, R.-D., Brown, J.L., Glaw, F., Amat, F., nzel, S.K.U., Metzler, D., Isokpehi, R.D. & Vences, M. (2017). Transcriptomic and macroevolutionary evidence for phenotypic uncoupling between frog life history phases. Nature Communications, 8, 1–9.
+
 ---
 ### Day 2
 
-#### Discussion
-
-
-
-#### Lecture
-
-* [Pigmenation plasticity in Spadefoot toads]()
-
----
-#### Practicals
-
-* [01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"}
+* _Group Discussion:_ Using -omics to study developmental plasticity. [50 mins]
+* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](). [10 mins]
+* _Practical:_[01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"}
 
 ---
 ### Day 3
 
-#### Practicals
-
-* [02 - Differential Gene Expression](./exercises/02_deg.html){:target="_blank"}
-* [03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"}
+* _Practical:_[02 - Differential Gene Expression](./exercises/02_deg.html){:target="_blank"}
+* _Practical:_[03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"}
 
 ---
 ### Day 4
 
-#### Practicals
-
 * [04 - Functional Enrichment](./exercises/04_functional_enrichment.html){:target="_blank"}
-
-#### Wrapping up
-
-We hope you have gotten a flavour of how we can leverage RNAseq to study developmental plasticity in non-model organisms.
+* _Group Discussion:_ Wrapping up.
