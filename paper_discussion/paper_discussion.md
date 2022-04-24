@@ -6,13 +6,13 @@ Transcriptomics has opened up the possibility of studying development and develo
 ---
 ## Papers
 
-* Casasa, S., Zattara, E.E. & Moczek, A.P. (2020). Nutrition-responsive gene expression and the developmental evolution of insect polyphenism. Nature Ecology & Evolution, 4, 1–12. [PDF](./Casasa.pdf)
+* Casasa, S., Zattara, E.E. & Moczek, A.P. (2020). Nutrition-responsive gene expression and the developmental evolution of insect polyphenism. Nature Ecology & Evolution, 4, 1–12. [PDF](./Casasa.pdf){:target="_blank"}
 
-* Liedtke, H.C., Harney, E. & Gomez-Mestre, I. (2021). Cross-species transcriptomics uncovers genes underlying genetic accommodation of developmental plasticity in spadefoot toads. Molecular Ecology, 30, 2220–2234. [PDF](./Liedtke.pdf)
+* Liedtke, H.C., Harney, E. & Gomez-Mestre, I. (2021). Cross-species transcriptomics uncovers genes underlying genetic accommodation of developmental plasticity in spadefoot toads. Molecular Ecology, 30, 2220–2234. [PDF](./Liedtke.pdf){:target="_blank"}
 
-* Wollenberg Valero, K.C., Garcia-Porta, J., guez, A.R.I., Arias, M.O.N., Shah, A., Randrianiaina, R.-D., Brown, J.L., Glaw, F., Amat, F., nzel, S.K.U., Metzler, D., Isokpehi, R.D. & Vences, M. (2017). Transcriptomic and macroevolutionary evidence for phenotypic uncoupling between frog life history phases. Nature Communications, 8, 1–9. [PDF](./Wollenberg.pdf)
+* Wollenberg Valero, K.C., Garcia-Porta, J., guez, A.R.I., Arias, M.O.N., Shah, A., Randrianiaina, R.-D., Brown, J.L., Glaw, F., Amat, F., nzel, S.K.U., Metzler, D., Isokpehi, R.D. & Vences, M. (2017). Transcriptomic and macroevolutionary evidence for phenotypic uncoupling between frog life history phases. Nature Communications, 8, 1–9. [PDF](./Wollenberg.pdf){:target="_blank"}
 
-* Zhu, W., Liu, L., Wang, X., Gao, X., Jiang, J. & Bin Wang. (2019). Transcriptomics reveals the molecular processes of light-induced rapid darkening of the non-obligate cave dweller Oreolalax rhodostigmatus (Megophryidae, Anura) and their genetic basis of pigmentation strategy. BMC Genomics, 19, 1–13. [PDF](./Zhu.pdf)
+* Zhu, W., Liu, L., Wang, X., Gao, X., Jiang, J. & Bin Wang. (2019). Transcriptomics reveals the molecular processes of light-induced rapid darkening of the non-obligate cave dweller Oreolalax rhodostigmatus (Megophryidae, Anura) and their genetic basis of pigmentation strategy. BMC Genomics, 19, 1–13. [PDF](./Zhu.pdf){:target="_blank"}
 
 ---
 
