@@ -1,0 +1,252 @@
+---
+title: "Differential Gene Expression - Visualization"
+subtitle: | 
+  MADOBIS: Aplicaciones y Discusiones en Desarrollo Animal
+author:
+- name: "H. Christoph Liedtke"
+  affiliation: "Estación Biológica de Doñana"
+date: '2022-04-04'
+output: webexercises::webexercises_default
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = FALSE,
+                      message=FALSE,
+                      error=FALSE)
+library("webexercises")
+```
+
+
+#### Prepare environment
+
+Set your working directory and load the libraries we will need.
+
+```{r eval=TRUE}
+# set working directory
+setwd("~/Dropbox/US_bioinformatics/practical/rnaseq_practical/")
+
+# install pacman if not already installed
+if (!require("pacman")) install.packages("pacman")
+
+# use pacman to load libraries
+pacman::p_load(tidyverse,DESeq2, ggVennDiagram, UpSetR,plotly,ggrepel)
+
+```
+
+## Background
+
+In the last exercise, we performed a differential gene expression analysis with `DESeq2`. We contrasted dorsal and ventral skin tissues from tadpoles reared on light and dark backgrounds. We were finished up with `DESeqResults` objects for pair-wise comparisons. These we saved as a list.
+  
+The aim of this exercise is to explore these results in greater detail. To do that, it would be good to know the functions of the genes in the Pelobates genome. One important extra file that you will use for this, is therefore an annotation file generated through BLASTing the genes against the Ensembl [*Xenopuss tropicalis*](http://www.ensembl.org/Xenopus_tropicalis/Info/Index) proteome. 
+
+## Load data
+
+Let's load the results files from the previous exercise, plus a file with annotations.
+
+```{r}
+# the list of DEG results
+res<-readRDS("deseq2_results.rds")
+
+# Load BLAST results
+xtrop<-read_csv("data/PCU23_annotations_xtr105.csv")
+```
+
+### A comment on the annotation file
+
+If we take a closer look at the annotation file, we should notice a few things:
+
+```{r}
+head(xtrop, 20)
+```
+
+The annotation table has merged a couple of sources of information. The `gene_id`, `transcript_id` and `pep_id` are _Pelobates_-specific identifiers. These are reference IDs from the _Pelobates_ genome. The `pep_description` are annotations from that genome. The rest (starting with `xtr_`) are _Xenopus tropicalis_ peptide ids, names and descriptions. These have been derived from either a BLASTx or BLASTp search (using [diamond](https://github.com/bbuchfink/diamond)). We used the _Xenopus tropicalis_ Ensembl v105 proteome as a target for this search. These are therefore **homolog annotations**.   
+  
+You should also be aware that the `gene_id` column does not contain unique identifiers. This is because the same gene can give rise to multiple transcripts. For now, we can load a second annotation file, where I have collapse these duplicates so that we have a gene-level annotation table.
+
+```{r}
+xtrop<-read_csv("data/PCU23_annotations_xtr105_genes.csv")
+```
+
+
+## Comparing sets
+
+As a reminder, calling `summary()` on our `DESeqResults` objects, returns the number (and percentage) of significant up and down regulated genes for a specific pair-wise comparison.
+
+```{r}
+summary(res$bD_bV, alpha=0.05)
+```
+
+However, we have multiple sets of pair-wise comparisons, and we might be interested to see how many genes which are differentially expressed are shared among sets. In other words, how many genes that are differentially expressed when comparing dorsal and ventral skin white tadpoles are also differentially expressed in the same comparison for dark tadpoles?
+  
+More often than not, you will come across comparisons of sets of raw numbers like this displayed as Venn diagrams.  
+  
+The first think we have to do, is to make lists of genes per set. I.e. which are these `395` genes that are differentially expressed in in the dorsal vs. ventral comparison in black tadpoles?  
+
+```{r}
+# For a single comparison
+res$bD_bV %>%
+  as_tibble(rownames = "gene") %>%
+  filter(padj<0.05) %>%
+  pull(gene)
+```
+
+We are going to do this repeatedly, so we can just turn this code into a function:
+
+```{r}
+# turn it into a function so we can apply it to a list!
+extract_degs<-function(x) {
+  return(
+    x %>%
+      as_tibble(rownames = "gene") %>%
+      filter(padj<0.05) %>%
+      pull(gene)
+  )
+}
+```
+
+We can now apply this to our list of `DESeqResults`.
+
+```{r}
+#  extract all
+sig_deg<-lapply(res, FUN=extract_degs)
+str(sig_deg)
+```
+
+We can now plot this as a Venn diagram. Let's do this just with two sets, for the dorsal-ventral comparisons for the black and the white tadpoles
+
+```{r}
+# comparing just the dorsal vs. ventral
+ggVennDiagram(sig_deg[c("bD_bV","wD_wV")],
+              label_alpha = 0) +
+  scale_fill_gradient(low="blue",high = "gold")
+```
+
+
+> _Question:_ What does this tell us?
+
+`r hide("Show Answer")`
+* Almost half of all the DEGs (the largest set) are shared! I.e. most of the difference in expression between dorsal and ventral skin, is probably not related to pigmentation.
+
+`r unhide()`
+
+> _Question:_ What would this look like if we compared all four sets? i.e. go ahead and make a Venn diagram comparing all four sets.
+
+`r hide("Show Answer")`
+```{r}
+ggVennDiagram(sig_deg,
+              label_alpha = 0) +
+  scale_fill_gradient(low="blue",high = "gold")
+```
+
+* The largest shared set is still the Dorsal-Ventral comparisons of black and white tadpoles.
+* There are `8` genes that are differentially expressed in all comparisons.
+`r unhide()`
+
+Personally, once you compare more than three sets, I find Venn diagrams to become difficult to interpret. An interesting alternative is an "upset" diagram. This shows exactly the same information.
+
+```{r}
+upset(fromList(sig_deg),
+      number.angles = 0, point.size = 3, line.size = 1,
+      sets.x.label = "Number of DEGs",
+      set_size.show	= TRUE,
+      set_size.scale_max = max(sapply(sig_deg, length))+50, # needed only to expand the axis a bit
+      text.scale = c(1.2, 1.2, 1.2, 1.2, 1.5, 1.5),
+      order.by=c("degree","freq"))
+```
+
+> _Question:_ What do we think? is this easier to interpret? Is there any additional information we can gain from this?
+
+`r hide("Show Answer")`
+* The information shown is pretty much the same. The only additional information shown is the set size (the horizontal barplot).
+`r unhide()`
+
+
+## Plotting fold changes
+
+A plot you may also have seen is a "Volcano" plot, where you are showing the log fold change plotted against the adjusted p-values per gene. To make small p-values very large, the p-values are usually -log10() transformed. The most basic plot would look like this:
+
+```{r}
+res$bD_bV %>%
+  as_tibble(rownames = "gene_id") %>%
+  ggplot(aes(x=log2FoldChange, y=-log10(padj))) +
+  geom_point(alpha=0.75, shape=16)
+```
+
+However, we want to squeeze as much information out of it as possible, so we will add the following:
+
+* Remove all points that are far from being significant.
+* Colour-code points that fall within the bounds of our significance thresholds (padj<0.05 and absolute log fold change > 2)
+* add annotations to the points (Gene IDs and the gene descriptions)
+* plot all comparisons together
+* make the plot interactive!
+
+```{r}
+gg_res <- res %>%
+  lapply(as_tibble,rownames = "gene_id") %>%
+  bind_rows(.id="comparison") %>%
+  drop_na(padj) %>% # drop all genes with NAs
+  filter(padj<0.5) %>% # reduce the number of points that need to be plotted
+  mutate(sig= padj<0.05 & abs(log2FoldChange)>=2) %>% # make a variable to indicate if a gene is significant based on a specific thresholds
+  left_join(xtrop, by=c("gene_id")) %>% # add annotations
+  ggplot(aes(x=log2FoldChange, y=-log10(padj), color=sig,
+            text=paste0("</br>Pcu23 gene: ", gene_id,
+                        "</br>Pcu23 peptide: ", pep_description,
+                       "</br>X.tr peptide: ", xtr_pep_name_x
+                       )
+         )) +
+  geom_point(alpha=0.75, shape=16) +
+  facet_wrap(~comparison, ncol = 2, scales = "free") +
+  xlim(-15,15) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggplotly(gg_res, tooltip="text")
+```
+
+> _Question:_ What gene are positively differentially expressed when comparing the black vs. the white dorsal tissue?
+
+`r hide("Show Answer")`
+* Seleno W
+* OX-2 membrane glyco-like
+* oca2
+* PMEL
+
+_Some other comments:_
+
+* Remember, the second contrast is always the reference, or baseline. This means, that `wD` (white dorsal) is the reference, and so a positive fold change means genes are over-expressed in the _treatment_, which is the black dorsal tissue. 
+* Notice also that some of them are missing annotations... is this a problem?
+* If we wanted to know more about the function of these genes, we need to turn to online references, such as UNIPROT, e.g. [PMEL](https://www.uniprot.org/uniprot/P40967)
+`r unhide()`
+
+We could also make publication-ready, static plots with annotations of specific genes. For example, all the significant DEGs for the black dorsal vs. white dorsal.
+
+```{r}
+res$bD_wD %>%
+  as_tibble(rownames = "gene_id") %>%
+  drop_na(padj) %>% # drop all genes with NAs
+  #filter(padj<0.99) %>% # reduce the number of points that need to be plotted
+  mutate(sig= padj<0.05 & abs(log2FoldChange)>=2) %>% # make a variable to indicate if a gene is significant based on a specific thresholds
+  left_join(xtrop, by=c("gene_id")) %>% # add annotations
+  ggplot(aes(x=log2FoldChange, y=-log10(padj), color=sig)) +
+  geom_point(alpha=0.75, shape=16) +
+  geom_text_repel(data=. %>% filter(sig), aes(label=xtr_pep_name_x), size=3) +
+  xlim(-10,10) +
+  ggtitle("DEGs in Black Dorsal Skin in Comparison to White Dorsal Skin") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+> _Question:_ What have we learned about the gene expression that controls pigemnation plasticity in dorsal skin of these tadpoles?
+
+`r hide("Show Answer")`
+
+Just some of the many answers:
+
+* Pigmentation changes involve melanosome biogeneis (pmel, oca2, mlana).
+* It also involves carotenoids! (bco2l)
+* There are many differentially expressed genes which may be important, but they are not annotated.
+
+`r unhide()`

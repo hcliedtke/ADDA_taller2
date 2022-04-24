@@ -5,7 +5,7 @@ This week, we will be exploring how transcriptomics, specifically RNA-seq can be
 In this course we will discussing how -omics have helped us answer questions related to this subject. We will also be working through a hands-on example of how we go about evaluating data obtained from an RNAseq experiment.
 
 ---
-## Curriculum
+## Course Curriculum
 
 ### Day 1
 
@@ -19,17 +19,17 @@ In this course we will discussing how -omics have helped us answer questions rel
 ### Day 2
 
 * _Group Discussion:_ Using -omics to study developmental plasticity. [50 mins]
-* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](). [10 mins]
-* _Practical:_[01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"}
+* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](./lectures/intro_pigmentation/index.html)(./[[PDF](lectures/intro_pigmentation.pdf)]. [15 mins]
+* _Practical:_ [01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"} [30 mins]
 
 ---
 ### Day 3
 
-* _Practical:_[02 - Differential Gene Expression](./exercises/02_deg.html){:target="_blank"}
-* _Practical:_[03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"}
+* _Practical:_ [02 - Differential Gene Expression](./exercises/02_deg.html){:target="_blank"} [50 mins]
+* _Practical:_ [03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"} [30 mins]
 
 ---
 ### Day 4
 
-* [04 - Functional Enrichment](./exercises/04_functional_enrichment.html){:target="_blank"}
+* _Practical:_ [04 - Functional Enrichment](./exercises/04_functional_enrichment.html){:target="_blank"} [50 mins]
 * _Group Discussion:_ Wrapping up.
