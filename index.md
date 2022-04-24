@@ -10,7 +10,7 @@ In this course we will discussing how -omics have helped us answer questions rel
 ### Day 1
 
 * _Lecture:_ [Introduction to Eco-Evo-Devo](). [50 mins]
-* _Group Discussion:_ [Using transcriptomics to study developmental in non-model systems](./paper_discussion/paper_discussion.md){:target="_blank"} . [50 mins]
+* _Group Discussion:_ [Using transcriptomics to study developmental in non-model systems](./paper_discussion/paper_discussion.md). [50 mins]
 
 ---
 ### Day 2
