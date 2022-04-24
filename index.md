@@ -10,16 +10,13 @@ In this course we will discussing how -omics have helped us answer questions rel
 ### Day 1
 
 * _Lecture:_ [Introduction to Eco-Evo-Devo](). [50 mins]
-* _Group Discussion:_ Using -omics to study developmental plasticity. [50 mins]
-  * Casasa, S., Zattara, E.E. & Moczek, A.P. (2020). Nutrition-responsive gene expression and the developmental evolution of insect polyphenism. Nature Ecology & Evolution, 4, 1–12.
-  * Liedtke, H.C., Harney, E. & Gomez-Mestre, I. (2021). Cross-species transcriptomics uncovers genes underlying genetic accommodation of developmental plasticity in spadefoot toads. Molecular Ecology, 30, 2220–2234.
-  * Wollenberg Valero, K.C., Garcia-Porta, J., guez, A.R.I., Arias, M.O.N., Shah, A., Randrianiaina, R.-D., Brown, J.L., Glaw, F., Amat, F., nzel, S.K.U., Metzler, D., Isokpehi, R.D. & Vences, M. (2017). Transcriptomic and macroevolutionary evidence for phenotypic uncoupling between frog life history phases. Nature Communications, 8, 1–9.
+* _Group Discussion:_ [Using transcriptomics to study developmental in non-model systems](./paper_discussion/paper_discussion.md){:target="_blank"} . [50 mins]
 
 ---
 ### Day 2
 
 * _Group Discussion:_ Using -omics to study developmental plasticity. [50 mins]
-* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](./lectures/intro_pigmentation/index.html)  [[PDF](lectures/intro_pigmentation.pdf)]. [15 mins]
+* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](./lectures/intro_pigmentation/index.html){:target="_blank"}  [[PDF](lectures/intro_pigmentation.pdf)]. [15 mins]
 * _Practical:_ [01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"} [30 mins]
 
 ---
