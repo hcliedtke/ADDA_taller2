@@ -19,7 +19,7 @@ In this course we will discussing how -omics have helped us answer questions rel
 ### Day 2
 
 * _Group Discussion:_ Using -omics to study developmental plasticity. [50 mins]
-* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](./lectures/intro_pigmentation/index.html)(./[[PDF](lectures/intro_pigmentation.pdf)]. [15 mins]
+* _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](./lectures/intro_pigmentation/index.html)  [[PDF](lectures/intro_pigmentation.pdf)]. [15 mins]
 * _Practical:_ [01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"} [30 mins]
 
 ---
