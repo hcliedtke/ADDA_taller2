@@ -5,7 +5,7 @@ This week, we will be exploring how transcriptomics, specifically RNA-seq can be
 In this course we will discussing how -omics have helped us answer questions related to this subject. We will also be working through a hands-on example of how we go about evaluating data obtained from an RNAseq experiment.
 
 > Course lecturers:
-> Ivan Gomez-Mestre
+> Ivan Gomez-Mestre  
 > H. Chirstoph Liedtke
 
 ---
