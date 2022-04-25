@@ -12,7 +12,7 @@ In this course we will discussing how -omics have helped us answer questions rel
 
 ### Day 1
 
-* _Lecture:_ [Introduction to Eco-Evo-Devo](). [50 mins]
+* _Lecture:_ Introduction to Eco-Evo-Devo. [50 mins]
 * _Group Discussion:_ [Using transcriptomics to study developmental in non-model systems](./paper_discussion/paper_discussion.md). [50 mins]
 
 ---
@@ -32,7 +32,7 @@ In this course we will discussing how -omics have helped us answer questions rel
 ### Day 4
 
 * _Practical:_ [04 - Functional Enrichment](./exercises/04_functional_enrichment.html){:target="_blank"} [[Rmd](./exercises/04_functional_enrichment.Rmd)] [[answers](./exercises/answers/04_functional_enrichment.html)] [50 mins]
-* _Group Discussion:_ Wrapping up.
+* _Group Discussion:_ Wrapping up, discussing any open questions and a mini questionnaire.
 
 ---
 ### Contact and feedback
