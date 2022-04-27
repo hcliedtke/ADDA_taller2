@@ -4,6 +4,8 @@ This week, we will be exploring how transcriptomics, specifically RNA-seq can be
 
 In this course we will discussing how -omics have helped us answer questions related to this subject. We will also be working through a hands-on example of how we go about evaluating data obtained from an RNAseq experiment.
 
+The practical sessions of this course will heavily relly on the `tidyverse` in R. This is a great tool that will make working with -omics data much easier. There are many resources online to help you get started, such as [this R book](https://bookdown.org/ansellbr/WEHI_tidyR_course_book/) by Brendan Ansell.
+  
 > Course lecturers:
 > Ivan Gomez-Mestre | H. Chirstoph Liedtke
 
