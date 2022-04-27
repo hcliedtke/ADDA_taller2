@@ -26,7 +26,7 @@ In this course we will discussing how -omics have helped us answer questions rel
 ### Day 3
 
 * _Practical:_ [02 - Differential Gene Expression](./exercises/02_deg.html){:target="_blank"} [[Rmd](./exercises/02_deg.Rmd)] [[answers](./exercises/answers/02_deg.html)] [50 mins]
-* _Practical:_ [03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"} [[Rmd](./exercises/03_deg_viz.Rmd)] [[answers]((./exercises/answers/03_deg_viz.html))] [30 mins]
+* _Practical:_ [03 - DEG visualisation](./exercises/03_deg_viz.html){:target="_blank"} [[Rmd](./exercises/03_deg_viz.Rmd)] [[answers](./exercises/answers/03_deg_viz.html)] [30 mins]
 
 ---
 ### Day 4
