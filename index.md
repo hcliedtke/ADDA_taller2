@@ -5,7 +5,7 @@ This week, we will be exploring how transcriptomics, specifically RNA-seq can be
 In this course we will discussing how -omics have helped us answer questions related to this subject. We will also be working through a hands-on example of how we go about evaluating data obtained from an RNAseq experiment.
 
 The practical sessions of this course will heavily relly on the `tidyverse` in R. This is a great tool that will make working with -omics data much easier. There are many resources online to help you get started, such as [this R book](https://bookdown.org/ansellbr/WEHI_tidyR_course_book/) by Brendan Ansell.
-  
+
 > Course lecturers:
 > Ivan Gomez-Mestre | H. Chirstoph Liedtke
 
@@ -34,7 +34,7 @@ The practical sessions of this course will heavily relly on the `tidyverse` in R
 ### Day 4
 
 * _Practical:_ [04 - Functional Enrichment](./exercises/04_functional_enrichment.html){:target="_blank"} [[Rmd](./exercises/04_functional_enrichment.Rmd)] [[answers](./exercises/answers/04_functional_enrichment.html)] [50 mins]
-* _Group Discussion:_ Wrapping up, discussing any open questions and a mini questionnaire.
+* _Group Discussion:_ Wrapping up, discussing any open questions and a [mini exercise](./exercises/experiment.md).
 
 ---
 ### Contact and feedback
