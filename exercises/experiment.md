@@ -1,7 +1,7 @@
 ## Design your own experiment!
 
 
-![crab](/assets/img/crab.png)
+![crab](./assets/img/crab.png)
 
 
 Descubrimos una especie de cangrejo que vive en la zona intermareal de un archipiélago en la costa de Nueva Zelanda. Óptimamente prefieren vivir en el océano, pero ahí se pueden ver expuestos a depredación por focas. Algunas de las islas de este archipiélago de hecho cuentan con grandes poblaciones de focas. En estas islas los cangrejos presentan un fenotipo particular, que parece reducir el riesgo de depredación: desarrollan unos caparazones más gruesos y pasan a ocupar pozas de la zona intermareal más próxima a tierra. Estas pozas son por lo general más cálidas, tienen menos oxígeno y mayor salinidad que el océano.
