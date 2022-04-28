@@ -1,4 +1,4 @@
-## Design your own experiment!
+## Diseña tu propio experimento!
 
 
 ![crab](./assets/img/crab.png)
