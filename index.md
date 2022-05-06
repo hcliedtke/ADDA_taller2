@@ -39,4 +39,4 @@ The practical sessions of this course will heavily relly on the `tidyverse` in R
 ---
 ### Contact and feedback
 
-> Contact us at:  igmestre@ebd.csic.es | christophliedkt@ebd.csic.es
+> Contact us at:  igmestre@ebd.csic.es | christophliedtke@ebd.csic.es
