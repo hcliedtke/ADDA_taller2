@@ -20,7 +20,8 @@ The practical sessions of this course will heavily relly on the `tidyverse` in R
 ---
 ### Day 2
 
-* _Group Discussion:_ [Using transcriptomics to study developmental in non-model systems - continued](./paper_discussion/paper_discussion.md). [50 mins]
+* _Group Discussion:_ [Using transcriptomics to study developmental in non-model systems - continued](./paper_discussion/paper_discussion.md). [40 mins]
+* _Practical:_ [i- A brief introduction to the Tidyverse](./exercises/i_tidyverse.html){:target="_blank"} [[Rmd](./exercises/i_tidyverse.Rmd){:target="_blank"}] [[answers](./exercises/answers/i_tidyverse.html){:target="_blank"}] [20 mins]
 * _Lecture:_ [Pigmentation plasticity in Pelobates tadpoles](./lectures/intro_pigmentation/index.html){:target="_blank"}  [[PDF](lectures/intro_pigmentation.pdf)]. [15 mins]
 * _Practical:_ [01- Exploring RNAseq Counts](./exercises/01_explore_counts.html){:target="_blank"} [[Rmd](./exercises/01_explore_counts.Rmd)] [[answers](./exercises/answers/01_explore_counts.html)] [30 mins]
 
