@@ -14,7 +14,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      eval = TRUE,
+                      eval = FALSE,
                       message=FALSE,
                       error=FALSE)
 knitr::opts_knit$set(root.dir = '../')
@@ -45,7 +45,7 @@ Efficient data manipulation and visualization becomes increasingly important whe
 ### Installing and using the tidyverse
 
 ```{r}
-install.packages("tidyverse",repos ="https://cran.rstudio.com/")
+if (!require("tidyverse")) install.packages("tidyverse",repos ="https://cran.rstudio.com/")
 library(tidyverse)
 ```
 
