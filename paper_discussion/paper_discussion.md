@@ -22,8 +22,8 @@ Transcriptomics has opened up the possibility of studying development and develo
 * How is transcriptomics (or other -omics) useful for answering this aims?
 * What is the experimental design:
   * What tissues?
-  * what treatments?
-  * how many biological replicates?
+  * What treatments?
+  * How many biological replicates?
   * Is there a "control" vs. "treatment", or "phenotype 1" vs "phenotype 2"?
 * Is there a reference genome available?
 * What are some methodological aspects for the nucleic acid extraction and sequencing methods?

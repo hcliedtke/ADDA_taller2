@@ -1,11 +1,11 @@
 ---
-title: "Tidyverse"
+title: "A Brief Intro to the Tidyverse"
 subtitle: | 
-  PoE23: Transcriptomics of phenotypic plasticity 
+  MADOBIS: Aplicaciones y Discusiones en Desarrollo Animal 
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-03-09'
+date: '2023-04-15'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -14,7 +14,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      eval = FALSE,
+                      eval = TRUE,
                       message=FALSE,
                       error=FALSE)
 knitr::opts_knit$set(root.dir = '../')
@@ -152,7 +152,7 @@ mpg %>%
   summarise_if(is.numeric, .funs = c(mean=mean, sd=sd))
 ```
 
-5. left join, right join, inner join, full join!
+#### 5. left join, right join, inner join, full join!
 
 Any SQL people out there? Often, we have more than one dataset or table and we want to join them based on a reference variable. These "join" operations can go in different directions, depending on which table you want to complete:  
 ![](../assets/img/sql-joins.png)
@@ -174,7 +174,7 @@ df1 %>%
 ```
 
 
-6. Pivot longer and wider
+#### 6. Pivot longer and wider
 
 When one variable is nested within another variable, this information can be stored as either a "wide" table, or a "long" table. (Think about multiple species in a genus, or multiple morphological measurements taken from a single animal).
 
