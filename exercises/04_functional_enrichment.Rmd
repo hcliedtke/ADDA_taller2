@@ -5,7 +5,7 @@ subtitle: |
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2022-04-04'
+date: '2023-04-15'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -27,7 +27,7 @@ Set your working directory and load the libraries we need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/ADDA_taller2_2022/")
+setwd("~/Documents/git_projects/ADDA_taller2/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
@@ -68,7 +68,7 @@ xtrop<-read_csv("./data/PCU23_annotations_xtr105.csv")
 
 Ideally, the annotations of your genes should come from experimental evidence from your organism. If you work with mice, drosophila or humans for example, many functional enrichment analysis tools will be very easy to implement because they will automatically connect your lists of genes to annotations, background lists etc. This is unlikely going to exist if you work with non-model systems. We are therefore dependent on making our own annotations and lists.  
 
-For our annotations, we are using BLAST results from querying our genes against the proteome of _Xenopus tropicalis_. This is a well studied frog species. It is still only distantly related to our focal species, but this is the best we can do. As we saw in the previous exercise, this results in many genes not having any annotations. These will be excluded unfortuantely.
+For our annotations, we are using BLAST results from querying our genes against the proteome of _Xenopus tropicalis_. This is a well studied frog species. It is still only distantly related to our focal species, but this is the best we can do. As we saw in the previous exercise, this results in many genes not having any annotations. These will be excluded unfortunately.
 
 ### Make gene sets
 
@@ -89,7 +89,7 @@ sig_deg<-lapply(res, FUN=extract_degs)
 str(sig_deg)
 ```
 
-We now have to `convert` those to *Xenopus tropicalis* IDs, by extracting the matching annotations. Because we will do this mutliple times over list itmes, it is cleaner to write a function first, then apply it to the lis. 
+We now have to `convert` those to *Xenopus tropicalis* IDs, by extracting the matching annotations. Because we will do this multiple times over list items, it is cleaner to write a function first, then apply it to the list. 
 
 ```{r}
 # make a function that extracts matching X. tropicalis IDs
@@ -155,8 +155,8 @@ The analysis can be performed with a single command, even if our query is a list
 An important thing to remember is that the associated R package `gprofiler2` is just an API, and the actual analysis will be performed on the g:Profiler server. This version is continuously updated, to match the updates Because of this, it is important to tell gprofiler which version of Ensembl you would like to use. Our annotations came from version 105, this is currently the default so lets use that version.
 
 ```{r}
-# set base url:
-set_base_url("http://biit.cs.ut.ee/gprofiler")
+# set base url. This should be the same as the ensembl version of your annotations
+set_base_url("https://biit.cs.ut.ee/gprofiler_archive3/e105_eg52_p16/")
 
 # check archived URLs in case you are using older versions of Ensembl here: https://biit.cs.ut.ee/gprofiler/page/archives
 
@@ -245,9 +245,9 @@ res_ora$result %>%
 
 ## Concluding remarks
 
-* A functional enrichment analysis is usefull when you have many differentially expressed genes and you would like to make biological sense of this.
-* These are 100% dependent on a) accurate annotations and b) currated functional databases. Both of these can be very problematic when working with non-model organisms.
-* The analysis also tends to be very sensitive to a number of factors, such as what the background set is, whether electronical annotations are included and what significance thresholds to use.
+* A functional enrichment analysis is useful when you have many differentially expressed genes and you would like to make biological sense of this.
+* These are 100% dependent on a) accurate annotations and b) curated functional databases. Both of these can be very problematic when working with non-model organisms.
+* The analysis also tends to be very sensitive to a number of factors, such as what the background set is, whether electronically annotations are included and what significance thresholds to use.
 
 > _Question:_ After having done the differential gene expression analysis and performed a functional enrichment analysis, what have we learned about the pigmentation plasticity of tadpoles?
 
