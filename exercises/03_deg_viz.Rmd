@@ -5,7 +5,7 @@ subtitle: |
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2022-04-04'
+date: '2023-04-15'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -27,7 +27,7 @@ Set your working directory and load the libraries we will need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/ADDA_taller2_2022/")
+setwd("~/Documents/git_projects/ADDA_taller2/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
