@@ -10,9 +10,11 @@ Transcriptomics has opened up the possibility of studying development and develo
 
 * Liedtke, H.C., Harney, E. & Gomez-Mestre, I. (2021). Cross-species transcriptomics uncovers genes underlying genetic accommodation of developmental plasticity in spadefoot toads. Molecular Ecology, 30, 2220–2234. [PDF](./Liedtke.pdf){:target="_blank"}
 
-* Wollenberg Valero, K.C., Garcia-Porta, J., guez, A.R.I., Arias, M.O.N., Shah, A., Randrianiaina, R.-D., Brown, J.L., Glaw, F., Amat, F., nzel, S.K.U., Metzler, D., Isokpehi, R.D. & Vences, M. (2017). Transcriptomic and macroevolutionary evidence for phenotypic uncoupling between frog life history phases. Nature Communications, 8, 1–9. [PDF](./Wollenberg.pdf){:target="_blank"}
+* Stuckert, A.M.M., Moore, E., Coyle, K.P., Davison, I., MacManes, M.D., Roberts, R. & Summers, K. (2019). Variation in pigmentation gene expression is associated with distinct aposematic color morphs in the poison frog Dendrobates auratus. BMC Evolutionary Biology, 19, 1–15.[PDF](./Stuckert.pdf){:target="_blank"}
 
 * Zhu, W., Liu, L., Wang, X., Gao, X., Jiang, J. & Bin Wang. (2019). Transcriptomics reveals the molecular processes of light-induced rapid darkening of the non-obligate cave dweller Oreolalax rhodostigmatus (Megophryidae, Anura) and their genetic basis of pigmentation strategy. BMC Genomics, 19, 1–13. [PDF](./Zhu.pdf){:target="_blank"}
+
+* Gessler, T. B., Wu, Z., & Valenzuela, N. (2023). Transcriptomic thermal plasticity underlying gonadal development in a turtle with ZZ/ZW sex chromosomes despite canalized genotypic sex determination. Ecology and Evolution, 13(2), e9854. [PDF](./Gessler.pdf){:target="_blank"}
 
 ---
 
@@ -26,7 +28,6 @@ Transcriptomics has opened up the possibility of studying development and develo
   * How many biological replicates?
   * Is there a "control" vs. "treatment", or "phenotype 1" vs "phenotype 2"?
 * Is there a reference genome available?
-* What are some methodological aspects for the nucleic acid extraction and sequencing methods?
 * What software/methods are used? For:
   * Transcriptome assembly
   * Reads quantification
