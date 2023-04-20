@@ -148,7 +148,7 @@ str(xtr_bg)
 
 ## Functional Enrichment Analysis
 
-We are now ready to go! There are a number of software and R packages that let you perform functional enrichment analysis. Here, we will use [g:Profiler])(https://biit.cs.ut.ee/gprofiler/), because it plays particularly well with R and with Ensembl gene/peptide annotations.  
+We are now ready to go! There are a number of software and R packages that let you perform functional enrichment analysis. Here, we will use [g:Profiler](https://biit.cs.ut.ee/gprofiler/), because it plays particularly well with R and with Ensembl gene/peptide annotations.  
 
 The analysis can be performed with a single command, even if our query is a list of multiple gene sets!  
 

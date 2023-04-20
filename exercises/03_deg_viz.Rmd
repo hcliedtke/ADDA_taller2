@@ -310,7 +310,7 @@ _Some other comments:_
 * If we wanted to know more about the function of these genes, we need to turn to online references, such as UNIPROT, e.g. [PMEL](https://www.uniprot.org/uniprot/P40967)
 `r unhide()`
 
-### Making publication-readt plots
+### Making publication-ready plots
 
 We could also make publication-ready, static plots with annotations of specific genes. For example, all the significant DEGs for the black dorsal vs. white dorsal.
 
