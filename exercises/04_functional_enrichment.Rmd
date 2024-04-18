@@ -1,11 +1,11 @@
 ---
 title: "Functional Enrichment"
 subtitle: | 
-  MADOBIS: Aplicaciones y Discusiones en Desarrollo Animal
+  UAM23: New Technologies for Developmental Evolutionary Biology Studies
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-04-15'
+date: '2023-12-08'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -15,7 +15,8 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE,
                       eval = FALSE,
                       message=FALSE,
-                      error=FALSE)
+                      error=FALSE,
+                      fig.width = 12)
 knitr::opts_knit$set(root.dir = '../')
 library("webexercises")
 ```
@@ -27,13 +28,13 @@ Set your working directory and load the libraries we need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/ADDA_taller2/")
+setwd("~/Documents/git_projects/UAM23_rnaseq/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
 
 # use pacman to load libraries
-pacman::p_load(tidyverse,gprofiler2)
+pacman::p_load(tidyverse,gprofiler2, scico)
 
 ```
 
@@ -41,11 +42,11 @@ pacman::p_load(tidyverse,gprofiler2)
 
 From the previous exercises on differential gene expression, we looked at some comparisons that resulted in >300 genes that were over or under expressed. It is not trivial to make sense of that many genes. One way to try to distill this large list of genes is a functional enrichment analysis. Essentially, we want to use curated lists of genes that belong to a specific functional category. Perhaps the most widely used knowledge base of this kind, is the [Gene Ontology](http://geneontology.org/), but there are others, such as the [Kyoto Encyclopedia of Genes and Genomes] (https://www.genome.jp/kegg/) and the [Reactome](https://reactome.org/).
 
-I will assume that you are familiar with the general concepts of functional enrichment analyses and the functional databases. In brief, the aim is to identify whether genes that belong to sets of annotated genes (e.g. a GO term) are over-represented (i.e. enriched) in a set of genes of interest (e.g. a list of differentially expressed genes). Often, this is also called a `Over Representation Analysis`.  
+Functional enrichment analyses might be a little tricky to get your head around, because they involve many parts. In brief, the aim is to identify whether genes that belong to sets of annotated genes (e.g. a GO term) are over-represented (i.e. enriched) in a set of genes of interest (e.g. a list of differentially expressed genes). Often, this is also called a `Over Representation Analysis`.  
 
 To perform such as test, we therefore need:
 
-1. A list of genes that are of biological interest (e.g. list of experimentally derived DEGs). These need to be annotated! That is, we need to know what these genes do.
+1. A list of loci that are of biological interest (e.g. list of experimentally derived DEGs). These need to be annotated! That is, we need to know if these loci are genes with a known function (i.e. annotated).
 2. A 'background' list of genes, that includes any gene that *could* have been differentially expressed in the analysis.
 3. A curated database of biologically relevant categories (GO terms, gene pathways etc.), with associated genes.
 
@@ -61,12 +62,12 @@ Let's load the results files we need.
 res<-readRDS("./results/deseq2_results.rds")
 
 # the annotations
-xtrop<-read_csv("./data/PCU23_annotations_xtr105.csv")
+xtrop<-read_csv("data/PCU23_annotations_xtr105_genes.csv")
 ```
 
 ## Prepare gene sets and background
 
-Ideally, the annotations of your genes should come from experimental evidence from your organism. If you work with mice, drosophila or humans for example, many functional enrichment analysis tools will be very easy to implement because they will automatically connect your lists of genes to annotations, background lists etc. This is unlikely going to exist if you work with non-model systems. We are therefore dependent on making our own annotations and lists.  
+Ideally, the annotations of your genes should come from experimental evidence from your organism. If you work with mice, _Drosophila_ or humans for example, many functional enrichment analysis tools will be very easy to implement because they will automatically connect your lists of genes to annotations, background lists etc. This is unlikely going to exist if you work with non-model systems. We are therefore dependent on making our own annotations and lists.  
 
 For our annotations, we are using BLAST results from querying our genes against the proteome of _Xenopus tropicalis_. This is a well studied frog species. It is still only distantly related to our focal species, but this is the best we can do. As we saw in the previous exercise, this results in many genes not having any annotations. These will be excluded unfortunately.
 
@@ -89,7 +90,7 @@ sig_deg<-lapply(res, FUN=extract_degs)
 str(sig_deg)
 ```
 
-We now have to `convert` those to *Xenopus tropicalis* IDs, by extracting the matching annotations. Because we will do this multiple times over list items, it is cleaner to write a function first, then apply it to the list. 
+We now have to `convert` those to *Xenopus tropicalis* IDs, by extracting the matching annotations. Because we will do this multiple times over list itmes, it is cleaner to write a function first, then apply it to the list. 
 
 ```{r}
 # make a function that extracts matching X. tropicalis IDs
@@ -133,7 +134,7 @@ There is some discussion about what makes a good background. Ideally, it should 
 
 `r hide("Show Answer")`
 
-It is not always clear, but in this case, I would argue that the tissue specific-transcriptome is the closest right answer. Even here, there are complications. We treat all skin to be the same tissue, but clearly the dorsal and ventral skin are very different.  
+It is not always clear, but in this case, I would argue that the tissue-specific transcriptome is the closest right answer. Even here, there are complications. We treat all skin to be the same tissue, but clearly the dorsal and ventral skin are very different.  
 
 We will use the full set of genes that were returned by `DESeq2`. This set should have filtered out genes that have low counts (i.e. unlikely to be expressed across any of our tissues/conditions).
 
@@ -148,17 +149,15 @@ str(xtr_bg)
 
 ## Functional Enrichment Analysis
 
-We are now ready to go! There are a number of software and R packages that let you perform functional enrichment analysis. Here, we will use [g:Profiler](https://biit.cs.ut.ee/gprofiler/), because it plays particularly well with R and with Ensembl gene/peptide annotations.  
+We are now ready to go! There are a number of software and R packages that let you perform functional enrichment analysis. Here, we will use [g:Profiler])(https://biit.cs.ut.ee/gprofiler/), because it plays particularly well with R and with Ensembl gene/peptide annotations.  
 
 The analysis can be performed with a single command, even if our query is a list of multiple gene sets!  
 
-An important thing to remember is that the associated R package `gprofiler2` is just an API, and the actual analysis will be performed on the g:Profiler server. This version is continuously updated, to match the updates Because of this, it is important to tell gprofiler which version of Ensembl you would like to use. Our annotations came from version 105, this is currently the default so lets use that version.
+An important thing to remember is that the associated R package `gprofiler2` is just an API, and the actual analysis will be performed on the g:Profiler server. This version is continuously updated, to match the updates Because of this, it is important to tell gprofiler which version of Ensembl you would like to use. Our annotations came from version 105, which is a slightly older version, so we have to make sure we set this correctly. We can do that by looking up the [archives](https://biit.cs.ut.ee/gprofiler/page/archives) on the g:Profiler homepage.
 
 ```{r}
-# set base url. This should be the same as the ensembl version of your annotations
-set_base_url("https://biit.cs.ut.ee/gprofiler_archive3/e105_eg52_p16/")
-
-# check archived URLs in case you are using older versions of Ensembl here: https://biit.cs.ut.ee/gprofiler/page/archives
+# set base url:
+set_base_url("https://biit.cs.ut.ee/gprofiler_archive3/e105_eg52_p16")
 
 
 # run the analysis
@@ -190,7 +189,7 @@ colnames(res_ora$result)
 
 most importantly:
 
-* the `term_id` and assocated `term_name` which are the functional terms from the sources we requested (GO, KEGG, Reactome).
+* the `term_id` and associated `term_name` which are the functional terms from the sources we requested (GO, KEGG, Reactome).
 * the `p_value`, which is actually the adjusted p-value (misleading!), that the given term is enriched (over represented) in our query (gene set).
 * the `term_size`, `query_size` and `intersect_size` which tell you how many genes make up the given term, how many genes were in your query and how many genes from both are overlapping.
 
@@ -209,15 +208,17 @@ res_ora$result %>%
   dplyr::count(query, sort=TRUE)
 ```
 
-We see that the dorsal-ventral comparisons have the most enriched terms (`17` and `14`) and the dorsal-dorsal comparison has the fewest (`7`) This is not surprising given the small number of genes in that last set.
+We see that the dorsal-ventral comparisons have the most enriched terms (`26` and `24`) and the dorsal-dorsal comparison has the fewest (`8`) This is not surprising given the small number of genes in that last set.
 
 `r unhide()`
 
 gprofiler also has a few visualization tools as well. For example an interactive Manhattan-style plot:
 
-```{r}
+```{r fig.height=12, fig.fullwidth=TRUE}
 gostplot(res_ora)
 ```
+
+You should see that the Dorsal-Ventral comparisons look fairly similar. Let's take some time to explore this plot.
 
 > _Question:_ What REACTOME pathway is enriched for all of the comparisons?
 
@@ -225,9 +226,11 @@ gostplot(res_ora)
 * Melanin biosynthesis
 `r unhide()`
 
-Another useful plot to show enrichment results are dot plots. We can easily make our custom dot plot using the gprofiler results tables and ggplot.
+Another useful plot to show enrichment results are dot plots. These are slightly more informative and make comparing across multiple sets more intuitive.  
+  
+We can easily make our custom dot plot using the gprofiler results tables and ggplot.
 
-```{r}
+```{r fig.height=12, fig.fullwidth=TRUE}
 res_ora$result %>%
   select(query,term_name, p_value, intersection_size, query_size,source) %>%
   filter(p_value<0.05) %>%
@@ -237,10 +240,21 @@ res_ora$result %>%
   ggplot(aes(x=GeneRatio, y=term_name)) +
   geom_point(aes(color=p_value, size=intersection_size)) +
   ylab("") +
-  scale_colour_viridis_c(direction = 1, option = "magma") +
+  scale_color_scico(palette = "batlow", direction = -1) +
   facet_grid(source~query,scales = "free_y",space = "free") +
   theme_bw()
 ```
+
+> _Question:_ After having done the differential gene expression analysis and performed a functional enrichment analysis, what have we learned about the pigmentation plasticity of tadpoles?
+
+`r hide("Show Answer")`
+
+We have learned for example that:
+* Melanin differential biosynthesis is relevant for all comparisons (even white ventral and black ventral?).
+* Dorsal-ventral differentiation is much more complicated and involves many. non-pigment related processes such as "system development" and "extracellular matrix".
+* There is still a clear singal of dark vs. light tadpole though. For the Biological Process ontogeny, pigmentation-related processes are mostly enriched in the black dorsal-ventral comparison and a little bit in the black-vs-white dorsum comparison.
+
+`r unhide()`
 
 
 ## Concluding remarks
@@ -249,11 +263,3 @@ res_ora$result %>%
 * These are 100% dependent on a) accurate annotations and b) curated functional databases. Both of these can be very problematic when working with non-model organisms.
 * The analysis also tends to be very sensitive to a number of factors, such as what the background set is, whether electronically annotations are included and what significance thresholds to use.
 
-> _Question:_ After having done the differential gene expression analysis and performed a functional enrichment analysis, what have we learned about the pigmentation plasticity of tadpoles?
-
-`r hide("Show Answer")`
-
-We have learned for example that:
-* melanin differential biosynthesis is relevant for all comparisons (even white ventral and black ventral?).
-* Dorsal-ventral differentiation is much more complicated and involves many. non-pigment related processes such as "system development" and "extracellular matrix".
-`r unhide()`

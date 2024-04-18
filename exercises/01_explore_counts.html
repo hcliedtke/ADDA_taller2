@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-04-04" />
+<meta name="date" content="2023-12-08" />
 
 <title>Exploring RNA-Seq Count Data</title>
 
@@ -254,25 +254,68 @@ if (window.hljs) {
 
 
 <style type="text/css">:root {
---pink: #983E82; 
---orange: #E2A458; 
---yellow: #F5DC70; 
---green: #59935B; 
---blue: #467AAC; 
---purple: #61589C; 
+--incorrect: #983E82;
+--incorrect_alpha: #edaddd;
+--correct: #59935B;
+--correct_alpha: #c0edc2;
+--highlight: #467AAC;
+}
+.webex-check {}
+.webex-box {
+border: 2px solid var(--highlight);
+padding: 0.5em 0.25em;
+margin: 1em 0;
+border-radius: .25em;
+background-color: rgba(127, 127, 127, 0.05);
+}
+.webex-total_correct {
+margin-left: 1em;
+}
+.unchecked .webex-total_correct {
+display: none;
+}
+.unchecked .webex-incorrect,
+.unchecked .webex-correct {
+border: 2px dotted grey !important;
+background-color: white !important;
 }
 
+.webex-select, input.webex-solveme,
+.unchecked .webex-radiogroup label.webex-incorrect,
+.unchecked .webex-radiogroup label.webex-correct{
+border: 2px dotted grey;
+background-color: white;
+border-radius: 0.25em;
+}
 .webex-incorrect,
-.webex-radiogroup label.webex-incorrect{
-border: 2px dotted var(--pink);
-background-color: #edaddd;
+input.webex-solveme.webex-incorrect,
+.webex-radiogroup label.webex-incorrect {
+border: 2px dotted var(--incorrect);
+background-color: var(--incorrect_alpha);
+color: black;
 border-radius: 0.25em;
 }
 .webex-correct,
+input.webex-solveme.webex-correct,
 .webex-radiogroup label.webex-correct {
-border: 2px solid var(--green);
-background-color: #c0edc2;
+border: 2px solid var(--correct);
+background-color: var(--correct_alpha);
+color: black;
 border-radius: 0.25em;
+}
+.unchecked .webex-incorrect span::before,
+.unchecked .webex-incorrect + .webex-icon::after,
+.unchecked .webex-correct span::before,
+.unchecked .webex-correct + .webex-icon::after {
+content: " ";
+}
+.webex-incorrect span::before,
+.webex-incorrect + .webex-icon::after {
+content: "\274C ";
+}
+.webex-correct span::before,
+.webex-correct + .webex-icon::after {
+content: "\2705 ";
 }
 
 .webex-solution {
@@ -283,19 +326,19 @@ margin-bottom: 10px;
 }
 .webex-solution.open {
 height: auto;
-border: 2px solid var(--blue);
+border: 2px solid var(--highlight);
 border-radius: 5px;
 }
-.webex-solution button {
+.webex-solution button, .webex-check-button {
 height: 2em;
 margin-bottom: 0.5em;
 border-radius: 0.5em;
-background-color: var(--blue);
+background-color: var(--highlight);
 color: white;
 padding: 0 0.5em;
 }
 .webex-solution pre.sourceCode {
-border-color: var(--green);
+border-color: var(--correct);
 }
 .webex-radiogroup label {
 margin-left: 2em;
@@ -303,12 +346,16 @@ text-indent: -1em;
 padding-left: 0.5em;
 font-weight: 400;
 display: block;
-border: 2px solid rgba(255, 255, 255, 1);
+border: 2px solid rgba(255, 255, 255, 0);
+background-color: inherit;
 border-radius: 0.25em;
 }
 .webex-radiogroup label input {
 position: relative;
 left: -1em;
+}
+.webex-radiogroup {
+margin: 1em 0;
 }
 </style>
 
@@ -356,23 +403,17 @@ overflow-y: auto;
 border: 1px solid #ddd;
 border-radius: 4px;
 }
-.tabset-dropdown > .nav-tabs > li.active:before {
-content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+content: "\e259";
 font-family: 'Glyphicons Halflings';
 display: inline-block;
 padding: 10px;
 border-right: 1px solid #ddd;
 }
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-content: "";
-border: none;
-}
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-content: "";
+content: "\e258";
 font-family: 'Glyphicons Halflings';
-display: inline-block;
-padding: 10px;
-border-right: 1px solid #ddd;
+border: none;
 }
 .tabset-dropdown > .nav-tabs > li.active {
 display: block;
@@ -414,11 +455,11 @@ display: none;
 
 
 <h1 class="title toc-ignore">Exploring RNA-Seq Count Data</h1>
-<h3 class="subtitle"><p>MADOBIS: Aplicaciones y Discusiones en
-Desarrollo Animal</p></h3>
+<h3 class="subtitle"><p>UAM23: New Technologies for Developmental
+Evolutionary Biology Studies</p></h3>
 <h4 class="author">H. Christoph Liedtke</h4>
 <address class="author_afil">
-Estación Biológica de Doñana<br><h4 class="date">2022-04-04</h4>
+Estación Biológica de Doñana<br><h4 class="date">2023-12-08</h4>
 
 </div>
 
@@ -431,13 +472,13 @@ for loading packages is <a href="http://trinker.github.io/pacman_dev/">pacman</a
 conveniently loads libraries, installs libraries that are not installed,
 including bioconductor packages!</p>
 <pre class="r"><code># set working directory
-setwd(&quot;~/Documents/git_projects/ADDA_taller2/&quot;)
+setwd(&quot;~/Documents/git_projects/UAM23_rnaseq/&quot;)
 
 # install pacman if not already installed
 if (!require(&quot;pacman&quot;)) install.packages(&quot;pacman&quot;)
 
 # use pacman to load libraries
-pacman::p_load(tidyverse, pheatmap)</code></pre>
+pacman::p_load(tidyverse, DESeq2, pheatmap)</code></pre>
 </div>
 <div id="background" class="section level2">
 <h2>Background</h2>
@@ -483,38 +524,43 @@ useful for saving R objects that are not tabular, or more than
 <div id="exploring-the-loaded-data" class="section level2">
 <h2>Exploring the loaded data</h2>
 <blockquote>
-<p><em>Question:</em> What is this data object you just imported?</p>
+<p><em>Question:</em> What is the class and structure of this data
+object?</p>
 </blockquote>
 <div class="webex-solution">
 <button>
 Show Answer
 </button>
+<pre class="r"><code>class(txi)
+str(txi)
+lapply(X=txi, FUN=head)</code></pre>
 <ul>
 <li>It is a list with 4 entries, three arrays/matrices
 (<code>abundamce</code>, <code>counts</code>, <code>length</code>) and 1
 character vector (<code>countsFromAbundance</code>).</li>
 </ul>
-<pre class="r"><code>str(txi)
-lapply(X=txi, FUN=head)</code></pre>
 </div>
 <blockquote>
-<p><em>Question:</em> What is the content of this object?</p>
+<p><em>Question:</em> What is the content of this object and how is it
+arranged?</p>
 </blockquote>
 <div class="webex-solution">
 <button>
 Show Answer
 </button>
 <ul>
-<li>The arrays correspond to <code>abundances</code>,
-<code>counts</code> and <code>length</code>.</li>
-<li>The arrays all have the same structure: They have target transcripts
-as rows and biological samples per column.</li>
+<li>All three arrays have target transcripts as rows and biological
+samples per column.</li>
 <li>Counts: estimate of the number of reads mapping to each
 transcript.</li>
-<li>Abundance: Abundance calculations from the quantifier (salmon).
-According to the <a href="https://salmon.readthedocs.io/en/latest/file_formats.html">salmon
-documentions</a>, this is TPM. We could check this be making sure
-columns add up to 1 million:</li>
+<li>Abundance: Raw counts cannot be compared across samples because each
+library may vary slightly in terms of the total number of reads,
+differences in sequencing bias and difference in transcript lengths.
+Salmon (the program we used to quantify reads) also produces an array of
+&quot;Abundances&quot; which are normalized counts. According to the <a href="https://salmon.readthedocs.io/en/latest/file_formats.html">salmon
+documention</a>, this is Transcripts Per Million (TPM). This bastically
+means that per sample, the total counts add up to 1 million. We could
+check this:</li>
 </ul>
 <pre class="r"><code>apply(X=txi$abundance, FUN=sum, MARGIN = 2)</code></pre>
 <p>In this case, they don&#39;t quite add up to 1 million because I have
@@ -528,56 +574,46 @@ been calculated from the abundances by <code>tximport</code>. Default is
 no (counts are from salmon).</li>
 </ul>
 </div>
-<blockquote>
-<p><em>Question:</em> Does something seem strange about the counts? and
-the lengths?</p>
-</blockquote>
-<div class="webex-solution">
-<button>
-Show Answer
-</button>
-<pre class="r"><code>head(txi$counts[1:5,])</code></pre>
-<ul>
-<li>The counts are not integers!! It is an “estimate” insofar as it is
-the expected number of reads that have originated from each transcript
-given the structure of the uniquely mapping and multi-mapping reads and
-the relative abundance estimates for each transcript.</li>
-</ul>
-<pre class="r"><code>head(txi$length[1:5,])</code></pre>
-<ul>
-<li>The length of the transcripts is not the same for each biological
-sample: This is the computed effective length of the target transcript.
-It takes into account all factors being modeled that will effect the
-probability of sampling fragments from this transcript, including the
-fragment length distribution and sequence-specific and gc-fragment bias
-(if they are being modeled).</li>
-</ul>
-</div>
+<p>It is always a good idea to look at the distribution of data:</p>
+<pre class="r"><code># Log10 transform and plot with base R:
+hist(log10(txi$abundance[,1]), breaks=50)
+
+# a more detailed plot with the tidyverse:
+txi$abundance %&gt;%
+  as_tibble(rownames = &quot;transcript&quot;) %&gt;%
+  pivot_longer(-transcript, names_to=&quot;sample&quot;, values_to=&quot;TPM&quot;) %&gt;%
+  ggplot(aes(x=TPM)) +
+  geom_histogram() +
+  ylab(&quot;number of transcripts&quot;) +
+  scale_x_log10() +
+  facet_wrap(~sample)</code></pre>
+<p>We can see that the log abundance is fairly normally distributed.
+This is a good sign. Many 0 counts would indicate that you have targets
+that are heavily depleted. For example, if I would have included
+non-coding target sequences, we would probably see a peak of low counts,
+because these tend to be very depleted in RNAseq data.</p>
 </div>
 <div id="visualize-your-count-data-pcas" class="section level2">
 <h2>Visualize your count data: PCAs</h2>
-<p>First, we may be curious as to whether there are some basic patterns
-in our data. For instance, we would expect biological replicates of the
-same treatment to have similar counts for the same genes. Because there
-are literally tens of thousands genes, we need to perform some sort of
-dimension reduction to be able to get a better handle on clustering of
-samples.</p>
-<p>Let&#39;s load our design matrix so that we can assign some biological
-and experimental information to the counts. This is a .csv file where we
-have included some information on what these samples actually are:</p>
+<p>Next, we may be curious as to whether there are some basic patterns
+in our data. For instance, we would expect biological replicates to
+cluster together.</p>
+<p>Let&#39;s load our design matrix. This is a .csv file where we have
+included some information on what these samples actually are:</p>
 <pre class="r"><code>samples&lt;-read.csv(&quot;./data/design_matrix.csv&quot;)</code></pre>
 <p>Take a closer look at this table.</p>
 <pre class="r"><code>samples</code></pre>
 <blockquote>
-<p><em>Question:</em> How many tissues are there? how many treatments
-are there?</p>
+<p><em>Question:</em> How many tissues and how many treatments are
+there?</p>
 </blockquote>
 <div class="webex-solution">
 <button>
 Show Answer
 </button>
-<pre class="r"><code>colnames(samples)
-table(samples[,c(&quot;treatment&quot;,&quot;tissue&quot;)])</code></pre>
+<pre class="r"><code>samples %&gt;%
+  select(treatment, tissue) %&gt;%
+  ftable()</code></pre>
 <ul>
 <li>There are two tissues (liver and skin) and two treatments (black and
 white). The treatments refer to the background colour that we raised the
@@ -587,33 +623,50 @@ us if it is from the dorsum or ventrum. Technically we therefore have 3
 samples per individual.</li>
 </ul>
 </div>
-<p>With this information we can perform a Principal Component Analysis
-(PCA) on the normalized counts (the TPM/abundance) and distinguish them
-using the information we have from our <code>samples</code> file that
-lays out the experimental design. This requires a few steps:</p>
+<p>Before we go any further, it makes sense to check if our biological
+replicates are grouping nicely. We could do this by performing a PCA on
+the normalized counts (the TPM/abundance) and distinguish them using the
+information we have from our <code>samples</code> file that lays out the
+experimental design. However, a PCA works best on homoskedastic data;
+this means that the variance of an observed quantity (here, the
+expression strength of a gene) does not depend on the mean. This is
+definitely an assumption we are violating with RNAseq data, so if we
+don&#39;t transform our data, then the PCA is going to be strongly
+influenced by a few highly expressed genes. All of this requires a few
+steps:</p>
 <ol style="list-style-type: decimal">
 <li>Filter out any genes that are non-variable. i.e. genes whose
 expression is the same across all biological samples.</li>
-<li>Transpose the abundance matrix so that we have samples as the rows
-and genes as the columns (we want to treat each gene as if it is a
-variable in our multivariate analysis).</li>
+<li>Transform the counts variable to imrpove heteroskedasticity. Here we
+will use a <a href="https://www.rdocumentation.org/packages/DESeq/versions/1.24.0/topics/vst">variance
+stabilizing transformation</a></li>
+<li>Transpose the matrix so that we have samples as the rows and genes
+as the columns (we want to treat each gene as if it is a variable in our
+multivariate analysis).</li>
 <li>Perform PCA on scaled and centered data.</li>
 <li>Plot the first two components, labeling points with relevant
 biological information.</li>
 </ol>
-<pre class="r"><code># remove 0-variance genes
-tpm&lt;-txi$abundance %&gt;%
+<pre class="r"><code># perform VS transformation (the vst() function only likes integers!)
+vst_counts&lt;- txi$counts %&gt;%
   as.data.frame() %&gt;%
-  filter_all(any_vars(. != 0))
+  mutate_all(as.integer) %&gt;%
+  as.matrix() %&gt;%
+  vst()
+  
+# remove 0-variance genes (remember to also convert counts to integers)
+vst_counts&lt;-vst_counts[apply(vst_counts, 1, var) != 0,]
 
-# perform PCA on TRANSPOSED scaled, centered TPMs
-pca&lt;- prcomp(t(tpm),scale.=T, center=T)
+# perform PCA on TRANSPOSED scaled, centered data
+pca&lt;- prcomp(t(vst_counts),scale.=T, center=T)
 
 ## add metadata and plot
 pca$x %&gt;%
   as_tibble(rownames = &quot;sample_id&quot;) %&gt;%
-  left_join(samples) %&gt;% # add the experimental design information using left_join!
+  left_join(samples) %&gt;% # add the experimental design information
   ggplot(aes(x=PC1, y=PC2, color=treatment, shape=tissue)) +
+  labs(x=paste0(&quot;PC1 (&quot;, summary(pca)$importance[&quot;Proportion of Variance&quot;,1]*100, &quot;%)&quot;),
+       y=paste(&quot;PC2 (&quot;, summary(pca)$importance[&quot;Proportion of Variance&quot;,2]*100, &quot;%)&quot;)) + 
   geom_point(size=3)</code></pre>
 <blockquote>
 <p>Question: Can we see any patterns in the PCA biplot?</p>
@@ -623,91 +676,56 @@ pca$x %&gt;%
 Show Answer
 </button>
 <ul>
-<li>Most of the variance is explained by tissue type.</li>
-<li>Treatment effect is not so clear, but there is some separation of
-treatments along PC2.</li>
+<li>Most of the variance is explained by tissue type (separation along
+PC1)</li>
+<li>Treatment effect is not so clear, but some separation along
+PC2.</li>
 </ul>
 </div>
-</div>
-<div id="visualize-your-count-data-heatmaps" class="section level2">
-<h2>Visualize your count data: Heatmaps</h2>
-<p>Another common visualization technique are heatmaps. Surely you have
-seen them in many publications. The PCA is useful for visualizing the
-clustering of samples. Heatmaps can do the same, but they can add one
-extra layer of information: the clustering of genes. Let&#39;s look at
-both:</p>
-<div id="heatmaps-by-samples" class="section level3">
-<h3>Heatmaps by samples</h3>
-<p>Like the PCA, we might want to compare the distance between samples.
-To do this, we have to manually calculate this distances first.</p>
-<pre class="r"><code># get sample-to-sample distance (again, using the transposed abundance matrix))
-sample_dist &lt;- dist(t(tpm))
-# convert to matrix
-sample_dist_matrix &lt;- as.matrix(sample_dist)
-
-# plot
-pheatmap(sample_dist_matrix,
-         annotation_col=data.frame(samples[,c(&quot;sample_id&quot;,&quot;tissue&quot;,&quot;treatment&quot;,&quot;side&quot;)], row.names = &quot;sample_id&quot;),
-         annotation_row=data.frame(samples[,c(&quot;sample_id&quot;,&quot;tissue&quot;,&quot;treatment&quot;,&quot;side&quot;)], row.names = &quot;sample_id&quot;))</code></pre>
 <blockquote>
-<p>Question: Can we see any patterns in the per-sample heatmap?</p>
-</blockquote>
-<div class="webex-solution">
-<button>
-Show Answer
-</button>
-<p>This shows a similar picture to the PCA: * There is strong clustering
-by tissue type, but we can&#39;t see much else.</p>
-</div>
-</div>
-<div id="heatmaps-by-transcripts" class="section level3">
-<h3>Heatmaps by transcripts</h3>
-<p>Above we are just showing the distance between samples, but you may
-be interested whether there are specific genes/transcripts who&#39;s
-expression is clustering. because there are thousands of genes, we may
-want to only focus on genes that are particularly variable in their
-expression across the samples.</p>
-<pre class="r"><code># Sort the rows in the abundance matrix (TPM) by the row-wise variance, and keep only the 500 most variable genes
-var_genes &lt;- apply(txi$abundance,MAR=1, FUN=var) %&gt;%
-  enframe() %&gt;%
-  arrange(desc(value)) %&gt;%
-  slice_head(n=500) %&gt;%
-  pull(name)
-
-head(var_genes) # list of genes we want to keep
-
-tpm_subset&lt;-txi$abundance[var_genes, ]
-
-# check to see we really only have 500 genes
-dim(tpm_subset)
-
-# plot heatmap
-pheatmap(tpm_subset,
-         scale = &quot;row&quot;,
-         clustering_method = &quot;ward.D&quot;,
-         cluster_rows=T, show_rownames=FALSE,
-         cluster_cols=T, show_colnames = T,
-         annotation_col=data.frame(samples[,c(&quot;sample_id&quot;,&quot;tissue&quot;,&quot;treatment&quot;,&quot;side&quot;)], row.names = &quot;sample_id&quot;))</code></pre>
-<blockquote>
-<p>Question: How is this heatmap different and do we learn anything new
-from this heatmap?</p>
+<p>Question: What about patterns within tissues? Try running this same
+code, but only for the liver samples.</p>
 </blockquote>
 <div class="webex-solution">
 <button>
 Show Hint
 </button>
+<p>Notice that sample with &quot;Li&quot; are liver samples. perhaps drop the
+remaining columns first?</p>
+</div>
+<div class="webex-solution">
+<button>
+Show Answer
+</button>
+<pre class="r"><code># perform VS transformation (the vst() function only likes integers!)
+vst_counts_liver&lt;- txi$counts %&gt;%
+  as.data.frame() %&gt;%
+  select(contains(&quot;Li&quot;)) %&gt;%
+  mutate_all(as.integer) %&gt;%
+  as.matrix() %&gt;%
+  vst()
+  
+# remove 0-variance genes (remember to also convert counts to integers)
+vst_counts_liver&lt;-vst_counts_liver[apply(vst_counts_liver, 1, var) != 0,]
+
+# perfomr PCA on TRANSPOSED scaled, centred data
+pca_liver&lt;- prcomp(t(vst_counts_liver),scale.=T, center=T)
+
+## add metadata and plot
+pca_liver$x %&gt;%
+  as_tibble(rownames = &quot;sample_id&quot;) %&gt;%
+  left_join(samples) %&gt;%
+  ggplot(aes(x=PC1, y=PC2, color=treatment)) +
+  geom_point(size=3)</code></pre>
 <ul>
-<li>We are no longer showing pair-wise distances, instead, we are
-comparing scaled expression per gene (row).</li>
-<li>We again see that most of the difference in gene expression is
-between liver and skin tissue.</li>
-<li>The 8Li sample is a clear outlier. It might be worth checking that
-sample more closely.</li>
+<li>Although this is not a textbook example (welcome to the world of
+real-life data!), we do see that there is a bit of separation in the
+treatments via a diagonal between PC1 and PC2.</li>
 </ul>
 </div>
 </div>
-<div id="final-comments" class="section level3">
-<h3>Final comments:</h3>
+<div id="final-comments" class="section level2">
+<h2>Final comments:</h2>
 <ul>
 <li>It is important to spend some time looking at your data! Nowadays
 there are many pipelines that will process the whole RNAseq workflow
@@ -720,7 +738,7 @@ tissues, you may want to run your analysis on each tissue
 independently.</li>
 <li>Here, we explore patterns in gene expression, but we do not apply
 any specific tests. More importantly, we are using counts that have been
-normalized <em>within</em> samples (TPM). It is generally advised that
+normalized <em>within</em> samples (TPM). It is generally adviced that
 these are not reliable when comparing <em>across</em> samples! (We will
 come back to this in the next exercise).</li>
 <li>There are many sources of information online. A practical guide that
@@ -731,6 +749,78 @@ as <a href="https://training.galaxyproject.org/training-material/topics/transcri
 one</a>.</li>
 </ul>
 </div>
+<div id="extras---visualize-your-count-data-with-heatmaps" class="section level2">
+<h2>Extras - Visualize your count data with heatmaps</h2>
+<p>Another common exploratory visualization technique are heatmaps.
+Surely you have seen them in many publications. The PCA is useful for
+visualizing the clustering of samples. Heatmaps can do the same, but
+they can add one extra layer of information: the clustering of genes.
+Let&#39;s look at two examples:</p>
+<div id="heatmaps-by-samples" class="section level3">
+<h3>Heatmaps by samples</h3>
+<p>Like the PCA, we might want to compare the distance between samples.
+To do this, we have to manually calculate this distances first, and then
+use those distances to inform the heatmap.</p>
+<pre class="r"><code># get sample-to-sample distance
+sample_dist &lt;- dist(t(vst_counts))
+
+# convert to matrix
+sample_dist_matrix &lt;- as.matrix(sample_dist)
+
+# plot
+pheatmap(sample_dist_matrix,
+         annotation_col=data.frame(samples[,c(&quot;sample_id&quot;,&quot;tissue&quot;,&quot;treatment&quot;,&quot;side&quot;)],
+                                   row.names = &quot;sample_id&quot;),
+         annotation_row=data.frame(samples[,c(&quot;sample_id&quot;,&quot;tissue&quot;,&quot;treatment&quot;,&quot;side&quot;)],
+                                   row.names = &quot;sample_id&quot;))</code></pre>
+<p>This shows a similar picture. There is strong clustering with
+tissues, and then a little bit of clustering for treatments within
+tissues, but the tissue-effect is consuming much of the signal.</p>
+</div>
+<div id="heatmpas-by-genes" class="section level3">
+<h3>Heatmpas by genes</h3>
+<p>Above we are just showing the distance between samples, but you may
+be interested whether there are specific genes/transcripts who&#39;s
+expression is clustering. because there are thousands of genes, we may
+want to only focus on genes that are particularly variable in their
+expression across the samples.</p>
+<pre class="r"><code># Sort the rows in vst matrix by the row-wise variance, and keep only the 500 most variable genes
+
+var_genes &lt;- apply(vst_counts,MAR=1, FUN=var) %&gt;%
+  enframe() %&gt;%
+  arrange(desc(value)) %&gt;%
+  slice_head(n=500) %&gt;%
+  pull(name)
+
+head(var_genes) # list of genes we want to keep
+
+vst_subset&lt;-vst_counts[var_genes, ]
+
+# check to see we really only have 500 genes
+dim(vst_subset)
+
+# plot heatmap (this time scaled by row)
+pheatmap(vst_subset,
+         scale = &quot;row&quot;,
+         cluster_rows=T, show_rownames=FALSE,
+         cluster_cols=T, show_colnames = T,
+         annotation_col=data.frame(samples[,c(&quot;sample_id&quot;,&quot;tissue&quot;,&quot;treatment&quot;,&quot;side&quot;)], row.names = &quot;sample_id&quot;))</code></pre>
+<blockquote>
+<p>Question: Do we learn anything new from this heatmap?</p>
+</blockquote>
+<div class="webex-solution">
+<button>
+Show Hint
+</button>
+<ul>
+<li>We again see that most of the difference in gene expression is
+between liver and skin tissue.</li>
+<li>The 8Li sample seems to have a very unique set of genes that are
+only over-expressed in that sample. It might be worth checking that
+sample more closely.</li>
+</ul>
+</div>
+</div>
 </div>
 
 <script>
@@ -739,25 +829,41 @@ one</a>.</li>
 update_total_correct = function() {
   console.log("webex: update total_correct");
 
-  if (t = document.getElementById("webex-total_correct")) {
-    var correct = document.getElementsByClassName("webex-correct").length;
-    var solvemes = document.getElementsByClassName("webex-solveme").length;
-    var radiogroups = document.getElementsByClassName("webex-radiogroup").length;
-    var selects = document.getElementsByClassName("webex-select").length;
-    
-    t.innerHTML = correct + " of " + (solvemes + radiogroups + selects) + " correct";
+  var t = document.getElementsByClassName("webex-total_correct");
+  for (var i = 0; i < t.length; i++) {
+    p = t[i].parentElement;
+    var correct = p.getElementsByClassName("webex-correct").length;
+    var solvemes = p.getElementsByClassName("webex-solveme").length;
+    var radiogroups = p.getElementsByClassName("webex-radiogroup").length;
+    var selects = p.getElementsByClassName("webex-select").length;
+
+    t[i].innerHTML = correct + " of " + (solvemes + radiogroups + selects) + " correct";
   }
 }
 
 /* webex-solution button toggling function */
 b_func = function() {
   console.log("webex: toggle hide");
-  
+
   var cl = this.parentElement.classList;
   if (cl.contains('open')) {
     cl.remove("open");
   } else {
     cl.add("open");
+  }
+}
+
+/* check answers */
+check_func = function() {
+  console.log("webex: check answers");
+
+  var cl = this.parentElement.classList;
+  if (cl.contains('unchecked')) {
+    cl.remove("unchecked");
+    this.innerHTML = "Hide Answers";
+  } else {
+    cl.add("unchecked");
+    this.innerHTML = "Show Answers";
   }
 }
 
@@ -811,9 +917,9 @@ solveme_func = function(e) {
 /* function for checking select answers */
 select_func = function(e) {
   console.log("webex: check select");
-  
+
   var cl = this.classList
-  
+
   /* add style */
   cl.remove("webex-incorrect");
   cl.remove("webex-correct");
@@ -822,7 +928,7 @@ select_func = function(e) {
   } else if (this.value != "blank") {
     cl.add("webex-incorrect");
   }
-  
+
   update_total_correct();
 }
 
@@ -833,25 +939,25 @@ radiogroups_func = function(e) {
   var checked_button = document.querySelector('input[name=' + this.id + ']:checked');
   var cl = checked_button.parentElement.classList;
   var labels = checked_button.parentElement.parentElement.children;
-  
+
   /* get rid of styles */
   for (i = 0; i < labels.length; i++) {
     labels[i].classList.remove("webex-incorrect");
     labels[i].classList.remove("webex-correct");
   }
-  
+
   /* add style */
   if (checked_button.value == "answer") {
     cl.add("webex-correct");
   } else {
     cl.add("webex-incorrect");
   }
-  
+
   update_total_correct();
 }
 
 window.onload = function() {
-  console.log("onload");
+  console.log("webex onload");
   /* set up solution buttons */
   var buttons = document.getElementsByTagName("button");
 
@@ -859,6 +965,22 @@ window.onload = function() {
     if (buttons[i].parentElement.classList.contains('webex-solution')) {
       buttons[i].onclick = b_func;
     }
+  }
+
+  var check_sections = document.getElementsByClassName("webex-check");
+  console.log("check:", check_sections.length);
+  for (var i = 0; i < check_sections.length; i++) {
+    check_sections[i].classList.add("unchecked");
+
+    let btn = document.createElement("button");
+    btn.innerHTML = "Show Answers";
+    btn.classList.add("webex-check-button");
+    btn.onclick = check_func;
+    check_sections[i].appendChild(btn);
+
+    let spn = document.createElement("span");
+    spn.classList.add("webex-total_correct");
+    check_sections[i].appendChild(spn);
   }
 
   /* set up webex-solveme inputs */
@@ -886,18 +1008,21 @@ window.onload = function() {
     /* attach checking function */
     solveme[i].onkeyup = solveme_func;
     solveme[i].onchange = solveme_func;
+
+    solveme[i].insertAdjacentHTML("afterend", " <span class='webex-icon'></span>")
   }
-  
+
   /* set up radiogroups */
   var radiogroups = document.getElementsByClassName("webex-radiogroup");
   for (var i = 0; i < radiogroups.length; i++) {
     radiogroups[i].onchange = radiogroups_func;
   }
-  
+
   /* set up selects */
   var selects = document.getElementsByClassName("webex-select");
   for (var i = 0; i < selects.length; i++) {
     selects[i].onchange = select_func;
+    selects[i].insertAdjacentHTML("afterend", " <span class='webex-icon'></span>")
   }
 
   update_total_correct();

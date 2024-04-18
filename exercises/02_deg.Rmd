@@ -1,11 +1,11 @@
 ---
 title: "Differential Gene Expression"
 subtitle: | 
-  MADOBIS: Aplicaciones y Discusiones en Desarrollo Animal
+  UAM23: New Technologies for Developmental Evolutionary Biology Studies
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-04-15'
+date: '2023-12-08'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -14,7 +14,8 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE,
                       eval = FALSE,
                       message=FALSE,
-                      error=FALSE)
+                      error=FALSE,
+                      fig.width=12)
 knitr::opts_knit$set(root.dir = '../')
 library(webexercises)
 ```
@@ -26,13 +27,13 @@ Set your working directory and load the libraries we will need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/ADDA_taller2/")
+setwd("~/Documents/git_projects/UAM23_rnaseq/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
 
 # use pacman to load libraries
-pacman::p_load(tidyverse, DESeq2,viridis,scales)
+pacman::p_load(tidyverse,DESeq2,viridis,scales)
 
 ```
 
@@ -78,7 +79,7 @@ txi$length<-txi$length[,samples$sample_id]
 
 ## Make a DESeqDataSet object
 
-We can now combine the design matrix and the expression data into a format that DESeq2 likes. The package `tximport` plays very well with DESeq2, so this is easy!
+We can now combine the design matrix and the expression data into a format that DESeq2 likes. `tximport` plays very well with DESeq2, so this is easy!
 
 ```{r}
 dds <- DESeqDataSetFromTximport(txi,
@@ -106,14 +107,18 @@ More specifically, it is a subclass of `RangedSummarizedExperiment`.
 
 ![](../assets/img/RangedSummarizedExperiment.png)
 
-This is a format widely used by packages in the Bioconductor ecosystem. The core of the object are assays (a single or multiple matrices) with samples as columns and features as rows. Features in this case are our genes or transcripts, but they may also be chromosomal coordinates etc. 
+This is a format widely used by packages in the Bioconductor ecosystem. The core of the object are assays (a single or multiple matrices) with samples as columns and freatures as rows. Features in this case are our genes or transcripts, but they may also be chromosomal coordinates etc. 
 
 Working with this type of object sometimes requires specific "accessor" functions (or methods) to get at data stored in 'slots'. For example, the `dds` object we created, has two assays: `counts` and `avgTxLength`. We can access them with `assays()` function (note: different from `assay()`), or specific functions for specific assays (if these are available)
 
 ```{r}
-names(assays(dds)) # list the stored assays
-assays(dds)[["avgTxLength"]] %>% head() # uses assays() function with typical indexing operators.
-counts(dds) %>% head() # uses counts() function to specifically extract the counts
+# see what assays are stored in the object:
+assayNames(dds)
+# call a specific assay by name
+assay(dds, "counts") %>% head()
+assay(dds, "avgTxLength") %>% head()
+# call a specific assay with a specific function
+counts(dds) %>% head()
 ```
 
 We can also access information about the columns:
@@ -124,31 +129,33 @@ colData(dds)
 
 In this case, this is the experimental information we provided with the design matrix!
 
-And we can also access the row data (in this case it is empty).
+And we can also access the row data.
 
 ```{r}
 rowData(dds)
 ```
 
+In this case it is empty, but you could imagine that you may have gene annotations here, or loci position information etc.
+
 Feel free to read up more on this kind of `SummarizedExperiment` data object [here](https://bioconductor.org/packages/devel/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html).
 
-  
 > _Question:_ What is different about count data stored in the dds object compared to the raw count data we imported?
 
 `r hide("Show Answer")`
+
+The decimal counts have been rounded off to make them integers.
 
 ```{r}
 head(counts(dds))
 head(txi$counts)
 ```
 
-One of the The decimal counts have been rounded off to make them integers.
 `r unhide()`
 
 
 ## Pre-filtering
 
-You may have seen that in some workflows or examples, people filter out genes that have generally very low counts, or even filters whose counts don't vary very much across samples. In theory, this is not necessary with DESeq2 as it will handle this on the fly (read more [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#pre-filtering)), but reducing the size of the matrix can greatly speeding up downstream calculations and reduce the memory requirements. 
+You may have seen that some workflows filter out genes that have very low counts, orwhose counts don't vary very much across samples. In theory, this is not necessary with DESeq2 as it will handle this on the fly (read more [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#pre-filtering)), but reducing the size of the matrix can greatly speeding up downstream calculations and reduce the memory requirements. 
 
 As we saw in the previous exercise, there are many liver-specific genes that most likely are not deferentially expressed in skin. There are therefore many rows of genes with 0 or very low counts. We can at least remove those:
 
@@ -157,37 +164,12 @@ As we saw in the previous exercise, there are many liver-specific genes that mos
 dds <- dds[rowSums(counts(dds)) >= 10,]
 ```
 
-## Sample clustering
-
-In the previous exercise, we learned that a sample PCA is a good way of checking to see if the biological replicates per treatment cluster together. We did this on the normalized counts (the abundance, or TPM matrix). We can do the same, but using a "variance stabilized transformation" (VST) of the count data, which is slightly more appropriate because it normalizes across samples, not just within samples, and takes other factors into consideration, such as the length of the target gene/transcript (more on that later), and the experimental design.
-
-```{r}
-vst_counts <- vst(dds, blind=F)
-# be sure to set `blind=F` to avoid overly shrinking the data (blind=T will not incorporate experimental design and so 'treatment' effects would be treated as noise)
-```
-
-Now we can use a `canned` function to run a PCA and plot the first two components:
-
-```{r}
-plotPCA(vst_counts,
-        intgroup=c("side", "treatment"), # indicate how to label the points
-        returnData=F, # plot only
-        ntop=500) # use only 500 most variable genes.
-```
-
-> _Question:_ What can we say from this initial exploration of the transformed counts?
-
-`r hide("Show Answer")`
-
-* We see some clustering of biological replicates, though perhaps not to the extend we expected.
-* The first component is separating the dorsal from ventral skin, not the black from white skin. Is that surprising?
-
 ## Differential Expression Analysis
 
-The ultimate goal of running such an analysis is to see if a given gene is expressed to a different degree in one condition vs. another condition. This sounds almost like a T-test kind of problem, but things are not that simple. In this exercise, I don't want to focus too much on the theory, but it might be worthwhile to refresh ourselves what some of the "problematic" features of the data are:
+The ultimate goal of running such an analysis is to see if a given gene is expressed to a different degree in one condition vs. another condition. This sounds almost like a T-test, but things are not that simple. In this exercise, I don't want to focus too much on theory, but it is worth talking about what some of the "problematic" features are of the data:
 
 * Many counts are low, or even zero.
-* RNAseq data tends to exhibit over dispersion: the variance is much greater than the mean.
+* RNAseq data tends to exhibit overdispersion: the variance is much greater than the mean.
 * The target contigs (e.g. genes) are of different lengths. You would expect longer contigs to also have more mapped reads.
 * Each library (sample) consists of a different total number of reads.
 * RNAseq experiments tend to have few (usually three) replicates per condition.
@@ -207,7 +189,7 @@ In short, `DESeq2` does the following:
 1. Estimation of size factors (control for differences in the library size of the sequencing experiments)
 2. Estimation of dispersion (e.g. for problem of large within-group variability and low sample sizes)
 3. Negative binomial GLM fitting (good for modeling discrete counts with over-dispersion)
-4. Wald statistics calculation (statistical significance testing) followed by a p-value adjustment (FDR)
+4. Wald statistics calculation and multiple testing correction (statistical significance testing)
 
 These are all done with a single convenient function:
 
@@ -216,7 +198,7 @@ dds <- DESeq(dds)
 dds
 ```
 
-_Note: it looks like we are "overwriting" the `dds` object, but really, we are just adding more information to it_
+> _Note: it looks like we are "overwriting" the `dds` object, but really, we are just adding more inforamtion to it_
 
 This incredibly convenient function has done all of the heavy lifting for us, and it has even run some pair-wise tests already, based on the `~condtion` variable we set.  
 
@@ -250,7 +232,7 @@ If we don't specify anything else, it will extract just the first comparison. In
 
 1. Rows are genes.
 2. Per gene, there are 6 metrics:
-  * baseMean: mean of normalized counts for all samples divided by size factor
+  * baseMean: mean of normalized counts for all samples divided by size factor (note: it does not take into account gene length).
   * log2FoldChange: The effect size estimate. This value indicates how much the gene or transcript's expression seems to have changed between the comparison and control groups. This value is reported on a logarithmic scale to base 2.
   * lfcSE: The standard error estimate for the log2 fold change estimate
   * stat: The value of the test statistic for the gene or transcript.
@@ -267,7 +249,10 @@ Some of the adjusted p-values are `NA`. This is what the `DESeq2` handbook tells
 Let's check some of those counts with `NA` padj:
 
 ```{r}
-counts(dds)[rownames(res)[is.na(res$padj)],] %>% head(15)
+counts(dds) %>%
+  as.data.frame() %>%
+  filter(is.na(res$padj)) %>%
+  head()
 ```
 
 Indeed! all have very low counts!! they are therefore unreliable, and should rightfully not be included in the results.
@@ -295,46 +280,36 @@ res_bD_wD<-results(dds, contrast=c("condition","black_dorsal","white_dorsal"))
 res_bV_wV<-results(dds, contrast=c("condition","black_ventral","white_ventral"))
 ```
 
-We now have four of the same types of objects and we will do the same kinds of things with these objects down the line. It is therefore 'good coding' to save these all in a single list object so we can use `apply()` for loops to do the same thing to each object:
-
-```{r}
-res<-list(bD_bV = res_bD_bV,
-          wD_wV = res_wD_wV,
-          bV_wV = res_bV_wV,
-          bD_wD = res_bD_wD)
-```
-
-
 We can now summarize these results tables:
 
 ```{r}
-# single comparison, here using a padj cutoff of 0.05
+summary(res_wD_wV, alpha=0.05)
 summary(res_bD_bV, alpha=0.05)
-# for all comparisons:
-lapply(res, summary, alpha=0.05)
+summary(res_bD_wD, alpha=0.05)
+summary(res_bV_wV, alpha=0.05)
 ```
 
 This returns the number of up-regulated genes (LFC>0) and down-regulated genes (LFC<0) with respect to the control variable. Other information is also given, such as the number of outliers and low counts. 
 
-> _Question:_ What do you notice about these results? Do they meet your expectations from the PCA earlier?
+> _Question:_ What do you notice about these results?
 
 `r hide("Show Answer")`
 
-It seems like the dorsal vs. ventral comparisons are producing many more up and down regulated genes than the black vs. white comparison. We should have expected this, given the PCA. This indicates that not all skin is the same! At the level of gene expression, the change in pigmentation on the dorsum is minimal compared to the difference in gene expression between dorsal and ventral skin of much similar colour!
+It seems like the dorsal vs. ventral comparisons are producing many more up and down regulated genes than the black vs. white comparison. This indicates that not all skin is the same! At the level of gene expression, the change in pigmentation on the dorsum is minimal compared to the difference in gene expression between dorsal and ventral skin of much similar colour!
 `r unhide()`
 
 
 ## MA plots
 
-A typical plot to show the distribution of differentially expressed genes, is a "MA-plot". Here, we plot the mean of normalized counts against the log fold change:
+The typical plot to show the distribution of differentially expressed genes, is a "MA-plot". Here, we plot the mean of normalized counts against the log fold change, with a canned plotting function from the `DESeq2` package.
 
 ```{r}
+par(mfrow=c(2,2))
 # single plot
-DESeq2::plotMA(res_bD_bV)
-
-# all comparisons (with lapply)
-par(mfrow=c(2,2)) # divide plot area in 4
-lapply(names(res),function(i) DESeq2::plotMA(res[[i]], main=i, alpha=0.05))
+DESeq2::plotMA(res_wD_wV, main="White Dorsals vs. Ventral")
+DESeq2::plotMA(res_bD_bV, main="Black Dorsals vs. Ventral")
+DESeq2::plotMA(res_bD_wD, main="Black Dorsals vs. White Dorsal")
+DESeq2::plotMA(res_bV_wV, main="Black Ventral vs. White Ventral")
 par(mfrow=c(1,1))
 ```
 
@@ -344,20 +319,19 @@ par(mfrow=c(1,1))
 `r hide("Show Answer")`
 * It demonstrates that only genes with a large average normalized count contain sufficient information to be significant
 * The same as from the summary() function:
-  * Dorsal-ventral comparisons result in more differentially expressed genes (DEGs), than black-white comparisons?
+  * Dorsal-ventral comparisons result in more differential expressed genes (DEGs), than black-white comparisons?
   * DEGs are more or less evenly up (positive fold changes) and down (negative fold changes) regulated for each comparison
-* There is a lot of noise for genes with genes with low normalized counts. This could be addressed by applying "shrinkage" methods - see bonus material
+* There is a lot of noise for genes with genes with low normalized counts.
 `r unhide()`
 
-
-We can squeeze even more information out of these kinds of plots.
+We can squeeze even more information out of these kinds of plots by getting creative with ggplot.
 
 ```{r}
 res_bD_bV %>%
   as.data.frame() %>%
   ggplot(aes(baseMean, log2FoldChange, colour=padj)) +
   geom_point(size=1) + 
-  scale_y_continuous(limits=c(-3, 3), oob=squish) + # oob from the scales package is needed to "squish" points falling outside the axis limits
+  scale_y_continuous(limits=c(-5, 5), oob=squish) + # oob from the scales package is needed to "squish" points falling outside the axis limits
   scale_x_log10() +
   geom_hline(yintercept = 0, colour="red", size=1, linetype="longdash") +
   labs(x="mean of normalized counts", y="log fold change") +
@@ -377,20 +351,26 @@ We have now finished the differential gene expression analysis. As the final ste
 # make a results folder if it does not yet exist
 dir.create("results", showWarnings = FALSE)
 
-# export individual results tables
-for(i in names(res)){
-  write.csv(as.data.frame(res[[i]]), paste0("./results/deseq2_", i,".csv"))
-}
-# export .rds files
-saveRDS(res, "./results/deseq2_results.rds")
+# export individual results tables like so:
+write.csv(as.data.frame(res_wD_wV), "./results/deseq2_res_wD_wV.csv")
+
+# but for convenience, we can export them all as a list object and save it as an .rds file
+saveRDS(list(
+          bD_bV = res_bD_bV,
+          wD_wV = res_wD_wV,
+          bV_wV = res_bV_wV,
+          bD_wD = res_bD_wD),
+        "./results/deseq2_results.rds")
+
+
+# export the DESeq2 object as an .rds files
 saveRDS(dds, "./results/deseq2_dds.rds")
 ```
 
----
----
----
 
-## Bonus Material - Diagnostics
+
+
+## Extras - Diagnostics
 
 At this point, we can do some quality checks, to make sure that all of the steps that `DESeq2 `has done, worked as expected. For example:
 
@@ -399,15 +379,13 @@ At this point, we can do some quality checks, to make sure that all of the steps
 The over-dispersion correction should result that there is an even distribution of p-values, with an "enrichment" of genes with low p-values (i.e. a rectangular plot with a peak near 0).
 
 ```{r}
-# single plot:
-hist(res_bD_bV$pvalue, breaks=50, col="grey", main="")
-
 # for all comparisons:
 par(mfrow=c(2,2))
 par(mar=c(4,4,1,1))
-for(i in names(res)){
-  hist(res[[i]]$pvalue, breaks=50, col="grey", main=i, xlab = "p-value")
-}
+hist(res_wD_wV$pvalue, breaks=50, col="grey", main="wD_wV")
+hist(res_bD_bV$pvalue, breaks=50, col="grey", main="_bD_bV")
+hist(res_bD_wD$pvalue, breaks=50, col="grey", main="bD_wD")
+hist(res_bV_wV$pvalue, breaks=50, col="grey", main="bV_wV")
 par(mfrow=c(1,1))
 ```
 

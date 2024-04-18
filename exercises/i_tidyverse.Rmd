@@ -1,11 +1,11 @@
 ---
-title: "A Brief Intro to the Tidyverse"
+title: "Tidyverse"
 subtitle: | 
-  MADOBIS: Aplicaciones y Discusiones en Desarrollo Animal 
+  UAM23: New Technologies for Developmental Evolutionary Biology Studies
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-04-15'
+date: '2023-12-07'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -14,11 +14,10 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      eval = FALSE,
+                      eval = TRUE,
                       message=FALSE,
                       error=FALSE)
 knitr::opts_knit$set(root.dir = '../')
-library(webexercises)
 ```
 
 
@@ -28,9 +27,9 @@ In this brief practical, we want to make sure we are all on the same page when i
 
 ## The Tidyverse
 
-> _Question:_ What is the Tidyverse?   
- 
- `r hide("Show Answer")`
+Efficient data manipulation and visualization becomes increasingly important when working with large datasets. In genomics, we are often working with 10s of thousands or 100s of thousands of lines of data, and often more than one related tabel or dataframe, that all needs to be manipulated in R.  
+
+> _What is the Tidyverse?_   
 
 
  ![](../assets/img/tidyverse.png)
@@ -38,20 +37,29 @@ In this brief practical, we want to make sure we are all on the same page when i
  * [A collection of R packages](https://www.tidyverse.org/)
  * The packages are focused on data science and they share an underlying grammar and design. In other words, they play well together!
 
-`r unhide()`
-
-Efficient data manipulation and visualization becomes increasingly important when working with large datasets. In genomics, we are often working with 10s of thousands or 100s of thousands of lines of data, and often more than one related tabel or dataframe, that all needs to be manipulated in R.  
 
 ### Installing and using the tidyverse
 
 ```{r}
-if (!require("tidyverse")) install.packages("tidyverse",repos ="https://cran.rstudio.com/")
+install.packages("tidyverse",repos ="https://cran.rstudio.com/")
 library(tidyverse)
 ```
 
 You should see that a call to load `tidyverse` library essentially just loads a number of "core" packages. It also tells you if there are any conflicting functions. For example, if you call `filter()`, it will use the filter function from the `dplyr` package, unless you specify to use the base `stats` package. 
 
 ### My favorite functions
+
+| Syntax | What it does |
+|:---|:---|
+| %>% | this "pipe" passes output from one function into another |
+| select() | Filters specified columns | 
+| filter() | Filters specified rows | 
+| arrange() | Sorts rows | 
+| mutate() | creates a new variable (column) |
+| group_by() | perform a specific operation on individual groups within the data |
+| join | combine data tables based on shared columns | 
+| pivot | transform table structures |
+
 
 #### 1. The pipe! 
 
@@ -152,7 +160,7 @@ mpg %>%
   summarise_if(is.numeric, .funs = c(mean=mean, sd=sd))
 ```
 
-#### 5. left join, right join, inner join, full join!
+5. left join, right join, inner join, full join!
 
 Any SQL people out there? Often, we have more than one dataset or table and we want to join them based on a reference variable. These "join" operations can go in different directions, depending on which table you want to complete:  
 ![](../assets/img/sql-joins.png)
@@ -174,7 +182,7 @@ df1 %>%
 ```
 
 
-#### 6. Pivot longer and wider
+6. Pivot longer and wider
 
 When one variable is nested within another variable, this information can be stored as either a "wide" table, or a "long" table. (Think about multiple species in a genus, or multiple morphological measurements taken from a single animal).
 
@@ -189,13 +197,9 @@ iris %>% as_tibble()
 ```
 
 
-> _Question:_ Is the iris dataset long or wide?   
- 
- `r hide("Show Answer")`
+> _Is the iris dataset long or wide?_ 
 
- * The iris dataset is a typical wide dataset, where each trait is its own variable
-
-`r unhide()`
+* The iris dataset is a typical wide dataset, where each trait is its own variable
 
 ```{r}
 ## lets reshape it!

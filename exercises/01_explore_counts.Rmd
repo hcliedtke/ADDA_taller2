@@ -1,11 +1,11 @@
 ---
 title: "Exploring RNA-Seq Count Data"
 subtitle: | 
-  MADOBIS: Aplicaciones y Discusiones en Desarrollo Animal
+  UAM23: New Technologies for Developmental Evolutionary Biology Studies
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2022-04-04'
+date: '2023-12-08'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -14,7 +14,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      eval = FALSE,
+                      eval = TRUE,
                       message=FALSE,
                       error=FALSE)
 knitr::opts_knit$set(root.dir = '../')
@@ -28,13 +28,13 @@ A good first thing to do when running any R script, is to set your working envir
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/ADDA_taller2/")
+setwd("~/Documents/git_projects/UAM23_rnaseq/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
 
 # use pacman to load libraries
-pacman::p_load(tidyverse, pheatmap)
+pacman::p_load(tidyverse, DESeq2, pheatmap)
 ```
 
 
@@ -68,26 +68,26 @@ For those of you unfamiliar, `.rds` files is a single R data object, created wit
 
 ## Exploring the loaded data
 
-> _Question:_ What is this data object you just imported? 
+> _Question:_ What is the class and structure of this data object? 
 
 `r hide("Show Answer")`
 
-* It is a list with 4 entries, three arrays/matrices (`abundamce`, `counts`, `length`) and 1 character vector (`countsFromAbundance`).
-  
 ```{r}
+class(txi)
 str(txi)
 lapply(X=txi, FUN=head)
 ```
 
+* It is a list with 4 entries, three arrays/matrices (`abundamce`, `counts`, `length`) and 1 character vector (`countsFromAbundance`).
+
 `r unhide()`
  
-> _Question:_ What is the content of this object?
+> _Question:_ What is the content of this object and how is it arranged?
  
  `r hide("Show Answer")`
- * The arrays correspond to `abundances`, `counts` and `length`.
- * The arrays all have the same structure: They have target transcripts as rows and biological samples per column.
+ * All three arrays have target transcripts as rows and biological samples per column.
  * Counts: estimate of the number of reads mapping to each transcript.
- * Abundance: Abundance calculations from the quantifier (salmon). According to the [salmon documentions](https://salmon.readthedocs.io/en/latest/file_formats.html), this is TPM. We could check this be making sure columns add up to 1 million:
+ * Abundance: Raw counts cannot be compared across samples because each library may vary slightly in terms of the total number of reads, differences in sequencing bias and difference in transcript lengths. Salmon (the program we used to quantify reads) also produces an array of "Abundances" which are normalized counts. According to the [salmon documention](https://salmon.readthedocs.io/en/latest/file_formats.html), this is Transcripts Per Million (TPM). This bastically means that per sample, the total counts add up to 1 million. We could check this:
       
 ```{r}
 apply(X=txi$abundance, FUN=sum, MARGIN = 2)
@@ -95,35 +95,37 @@ apply(X=txi$abundance, FUN=sum, MARGIN = 2)
 
 In this case, they don't quite add up to 1 million because I have already filtered this matrix, to remove non-coding and mitochondrial DNA.
     
+
 * length: effective length of the target transcript.
 * countsFromAbundance: a character vector indicating whether counts were taken directly from the quantifier (salmon) or whether they have been calculated from the abundances by `tximport`. Default is no (counts are from salmon).
 
 `r unhide()`
 
 
-> _Question:_ Does something seem strange about the counts? and the lengths?
-
-`r hide("Show Answer")`
-```{r}
-head(txi$counts[1:5,])
-```
-
-* The counts are not integers!! It is an “estimate” insofar as it is the expected number of reads that have originated from each transcript given the structure of the uniquely mapping and multi-mapping reads and the relative abundance estimates for each transcript.  
+It is always a good idea to look at the distribution of data:
 
 ```{r}
-head(txi$length[1:5,])
+# Log10 transform and plot with base R:
+hist(log10(txi$abundance[,1]), breaks=50)
+
+# a more detailed plot with the tidyverse:
+txi$abundance %>%
+  as_tibble(rownames = "transcript") %>%
+  pivot_longer(-transcript, names_to="sample", values_to="TPM") %>%
+  ggplot(aes(x=TPM)) +
+  geom_histogram() +
+  ylab("number of transcripts") +
+  scale_x_log10() +
+  facet_wrap(~sample)
 ```
 
-* The length of the transcripts is not the same for each biological sample: This is the computed effective length of the target transcript. It takes into account all factors being modeled that will effect the probability of sampling fragments from this transcript, including the fragment length distribution and sequence-specific and gc-fragment bias (if they are being modeled).
-
-`r unhide()`
-
+We can see that the log abundance is fairly normally distributed. This is a good sign. Many 0 counts would indicate that you have targets that are heavily depleted. For example, if I would have included non-coding target sequences, we would probably see a peak of low counts, because these tend to be very depleted in RNAseq data.
 
 ## Visualize your count data: PCAs
 
-First, we may be curious as to whether there are some basic patterns in our data. For instance, we would expect biological replicates of the same treatment to have similar counts for the same genes. Because there are literally tens of thousands genes, we need to perform some sort of dimension reduction to be able to get a better handle on clustering of samples.  
-
-Let's load our design matrix so that we can assign some biological and experimental information to the counts. This is a .csv file where we have included some information on what these samples actually are:
+Next, we may be curious as to whether there are some basic patterns in our data. For instance, we would expect biological replicates to cluster together.  
+  
+Let's load our design matrix. This is a .csv file where we have included some information on what these samples actually are:
 
 ```{r}
 samples<-read.csv("./data/design_matrix.csv")
@@ -136,13 +138,14 @@ samples
 ```
 
 
-> _Question:_ How many tissues are there? how many treatments are there?
+> _Question:_ How many tissues and how many treatments are there?
 
 `r hide("Show Answer")`
 
 ```{r}
-colnames(samples)
-table(samples[,c("treatment","tissue")])
+samples %>%
+  select(treatment, tissue) %>%
+  ftable()
 ```
 
 * There are two tissues (liver and skin) and two treatments (black and white). The treatments refer to the background colour that we raised the tadpoles in.
@@ -150,77 +153,122 @@ table(samples[,c("treatment","tissue")])
 
 `r unhide()`
 
-With this information we can perform a Principal Component Analysis (PCA) on the normalized counts (the TPM/abundance) and distinguish them using the information we have from our `samples` file that lays out the experimental design. This requires a few steps:
+Before we go any further, it makes sense to check if our biological replicates are grouping nicely. We could do this by performing a PCA on the normalized counts (the TPM/abundance) and distinguish them using the information we have from our `samples` file that lays out the experimental design. However, a PCA works best on homoskedastic data; this means that the variance of an observed quantity (here, the expression strength of a gene) does not depend on the mean. This is definitely an assumption we are violating with RNAseq data, so if we don't transform our data, then the PCA is going to be strongly influenced by a few highly expressed genes. All of this requires a few steps:
 
 1. Filter out any genes that are non-variable. i.e. genes whose expression is the same across all biological samples.
-2. Transpose the abundance matrix so that we have samples as the rows and genes as the columns (we want to treat each gene as if it is a variable in our multivariate analysis).
-3. Perform PCA on scaled and centered data.
-4. Plot the first two components, labeling points with relevant biological information.
+2. Transform the counts variable to imrpove heteroskedasticity. Here we will use a [variance stabilizing transformation](https://www.rdocumentation.org/packages/DESeq/versions/1.24.0/topics/vst)
+3. Transpose the matrix so that we have samples as the rows and genes as the columns (we want to treat each gene as if it is a variable in our multivariate analysis).
+4. Perform PCA on scaled and centered data.
+5. Plot the first two components, labeling points with relevant biological information.
 
 ```{r}
-# remove 0-variance genes
-tpm<-txi$abundance %>%
+# perform VS transformation (the vst() function only likes integers!)
+vst_counts<- txi$counts %>%
   as.data.frame() %>%
-  filter_all(any_vars(. != 0))
+  mutate_all(as.integer) %>%
+  as.matrix() %>%
+  vst()
+  
+# remove 0-variance genes (remember to also convert counts to integers)
+vst_counts<-vst_counts[apply(vst_counts, 1, var) != 0,]
 
-# perform PCA on TRANSPOSED scaled, centered TPMs
-pca<- prcomp(t(tpm),scale.=T, center=T)
+# perform PCA on TRANSPOSED scaled, centered data
+pca<- prcomp(t(vst_counts),scale.=T, center=T)
 
 ## add metadata and plot
 pca$x %>%
   as_tibble(rownames = "sample_id") %>%
-  left_join(samples) %>% # add the experimental design information using left_join!
+  left_join(samples) %>% # add the experimental design information
   ggplot(aes(x=PC1, y=PC2, color=treatment, shape=tissue)) +
+  labs(x=paste0("PC1 (", summary(pca)$importance["Proportion of Variance",1]*100, "%)"),
+       y=paste("PC2 (", summary(pca)$importance["Proportion of Variance",2]*100, "%)")) + 
   geom_point(size=3)
 ```
 
 > Question: Can we see any patterns in the PCA biplot?
 
 `r hide("Show Answer")`
-* Most of the variance is explained by tissue type.
-* Treatment effect is not so clear, but there is some separation of treatments along PC2.
+* Most of the variance is explained by tissue type (separation along PC1)
+* Treatment effect is not so clear, but some separation along PC2.
+
+`r unhide()`
+
+> Question: What about patterns within tissues? Try running this same code, but only for the liver samples.
+
+`r hide("Show Hint")`
+Notice that sample with "Li" are liver samples. perhaps drop the remaining columns first? 
+`r unhide()`
+
+`r hide("Show Answer")`
+```{r}
+# perform VS transformation (the vst() function only likes integers!)
+vst_counts_liver<- txi$counts %>%
+  as.data.frame() %>%
+  select(contains("Li")) %>%
+  mutate_all(as.integer) %>%
+  as.matrix() %>%
+  vst()
+  
+# remove 0-variance genes (remember to also convert counts to integers)
+vst_counts_liver<-vst_counts_liver[apply(vst_counts_liver, 1, var) != 0,]
+
+# perfomr PCA on TRANSPOSED scaled, centred data
+pca_liver<- prcomp(t(vst_counts_liver),scale.=T, center=T)
+
+## add metadata and plot
+pca_liver$x %>%
+  as_tibble(rownames = "sample_id") %>%
+  left_join(samples) %>%
+  ggplot(aes(x=PC1, y=PC2, color=treatment)) +
+  geom_point(size=3)
+```
+
+* Although this is not a textbook example (welcome to the world of real-life data!), we do see that there is a bit of separation in the treatments via a diagonal between PC1 and PC2.
 
 `r unhide()`
 
 
-## Visualize your count data: Heatmaps
+## Final comments:
 
-Another common visualization technique are heatmaps. Surely you have seen them in many publications. The PCA is useful for visualizing the clustering of samples. Heatmaps can do the same, but they can add one extra layer of information: the clustering of genes. Let's look at both:
+* It is important to spend some time looking at your data! Nowadays there are many pipelines that will process the whole RNAseq workflow from start to finish, but don't forget to actually look at your results in detail.
+* It is important to think about what comparisons you are trying to make. Here, we saw that the tissue effect is much stronger than the treatment effect. Unless it is a specific aim of yours to compare across tissues, you may want to run your analysis on each tissue independently.
+* Here, we explore patterns in gene expression, but we do not apply any specific tests. More importantly, we are using counts that have been normalized _within_ samples (TPM). It is generally adviced that these are not reliable when comparing _across_ samples! (We will come back to this in the next exercise).
+* There are many sources of information online. A practical guide that may be useful is the `Computational Genomics with R` [book](http://compgenomr.github.io/book/), especially the chapter on [RNA-Seq](http://compgenomr.github.io/book/rnaseqanalysis.html) by Bora Uyar. Galaxy also has plenty of interesting documentation such as [this one](https://training.galaxyproject.org/training-material/topics/transcriptomics/tutorials/rb-rnaseq/tutorial.html).
+
+
+## Extras - Visualize your count data with heatmaps
+
+Another common exploratory visualization technique are heatmaps. Surely you have seen them in many publications. The PCA is useful for visualizing the clustering of samples. Heatmaps can do the same, but they can add one extra layer of information: the clustering of genes. Let's look at two examples:
 
 ### Heatmaps by samples
 
-Like the PCA, we might want to compare the distance between samples. To do this, we have to manually calculate this distances first.
+Like the PCA, we might want to compare the distance between samples. To do this, we have to manually calculate this distances first, and then use those distances to inform the heatmap.
 
 ```{r}
-# get sample-to-sample distance (again, using the transposed abundance matrix))
-sample_dist <- dist(t(tpm))
+# get sample-to-sample distance
+sample_dist <- dist(t(vst_counts))
+
 # convert to matrix
 sample_dist_matrix <- as.matrix(sample_dist)
 
 # plot
 pheatmap(sample_dist_matrix,
-         annotation_col=data.frame(samples[,c("sample_id","tissue","treatment","side")], row.names = "sample_id"),
-         annotation_row=data.frame(samples[,c("sample_id","tissue","treatment","side")], row.names = "sample_id"))
+         annotation_col=data.frame(samples[,c("sample_id","tissue","treatment","side")],
+                                   row.names = "sample_id"),
+         annotation_row=data.frame(samples[,c("sample_id","tissue","treatment","side")],
+                                   row.names = "sample_id"))
 ```
 
+This shows a similar picture. There is strong clustering with tissues, and then a little bit of clustering for treatments within tissues, but the tissue-effect is consuming much of the signal.
 
-> Question: Can we see any patterns in the per-sample heatmap?
-
-`r hide("Show Answer")`
-
-This shows a similar picture to the PCA:
-* There is strong clustering by tissue type, but we can't see much else.
-
-`r unhide()`
-
-
-### Heatmaps by transcripts
+### Heatmpas by genes
 
 Above we are just showing the distance between samples, but you may be interested whether there are specific genes/transcripts who's expression is clustering. because there are thousands of genes, we may want to only focus on genes that are particularly variable in their expression across the samples.
 
 ```{r}
-# Sort the rows in the abundance matrix (TPM) by the row-wise variance, and keep only the 500 most variable genes
-var_genes <- apply(txi$abundance,MAR=1, FUN=var) %>%
+# Sort the rows in vst matrix by the row-wise variance, and keep only the 500 most variable genes
+
+var_genes <- apply(vst_counts,MAR=1, FUN=var) %>%
   enframe() %>%
   arrange(desc(value)) %>%
   slice_head(n=500) %>%
@@ -228,34 +276,25 @@ var_genes <- apply(txi$abundance,MAR=1, FUN=var) %>%
 
 head(var_genes) # list of genes we want to keep
 
-tpm_subset<-txi$abundance[var_genes, ]
+vst_subset<-vst_counts[var_genes, ]
 
 # check to see we really only have 500 genes
-dim(tpm_subset)
+dim(vst_subset)
 
-# plot heatmap
-pheatmap(tpm_subset,
+# plot heatmap (this time scaled by row)
+pheatmap(vst_subset,
          scale = "row",
-         clustering_method = "ward.D",
          cluster_rows=T, show_rownames=FALSE,
          cluster_cols=T, show_colnames = T,
          annotation_col=data.frame(samples[,c("sample_id","tissue","treatment","side")], row.names = "sample_id"))
 ```
 
-> Question: How is this heatmap different and do we learn anything new from this heatmap?
+> Question: Do we learn anything new from this heatmap?
 
 `r hide("Show Hint")`
-* We are no longer showing pair-wise distances, instead, we are comparing scaled expression per gene (row).
 * We again see that most of the difference in gene expression is between liver and skin tissue.
-* The 8Li sample is a clear outlier. It might be worth checking that sample more closely.
+* The 8Li sample seems to have a very unique set of genes that are only over-expressed in that sample. It might be worth checking that sample more closely. 
 
 `r unhide()`
-
-### Final comments:
-
-* It is important to spend some time looking at your data! Nowadays there are many pipelines that will process the whole RNAseq workflow from start to finish, but don't forget to actually look at your results in detail.
-* It is important to think about what comparisons you are trying to make. Here, we saw that the tissue effect is much stronger than the treatment effect. Unless it is a specific aim of yours to compare across tissues, you may want to run your analysis on each tissue independently.
-* Here, we explore patterns in gene expression, but we do not apply any specific tests. More importantly, we are using counts that have been normalized _within_ samples (TPM). It is generally advised that these are not reliable when comparing _across_ samples! (We will come back to this in the next exercise).
-* There are many sources of information online. A practical guide that may be useful is the `Computational Genomics with R` [book](http://compgenomr.github.io/book/), especially the chapter on [RNA-Seq](http://compgenomr.github.io/book/rnaseqanalysis.html) by Bora Uyar. Galaxy also has plenty of interesting documentation such as [this one](https://training.galaxyproject.org/training-material/topics/transcriptomics/tutorials/rb-rnaseq/tutorial.html).
 
 

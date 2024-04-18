@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2023-04-15" />
+<meta name="date" content="2023-12-08" />
 
 <title>Differential Gene Expression - Visualization</title>
 
@@ -254,25 +254,68 @@ if (window.hljs) {
 
 
 <style type="text/css">:root {
---pink: #983E82; 
---orange: #E2A458; 
---yellow: #F5DC70; 
---green: #59935B; 
---blue: #467AAC; 
---purple: #61589C; 
+--incorrect: #983E82;
+--incorrect_alpha: #edaddd;
+--correct: #59935B;
+--correct_alpha: #c0edc2;
+--highlight: #467AAC;
+}
+.webex-check {}
+.webex-box {
+border: 2px solid var(--highlight);
+padding: 0.5em 0.25em;
+margin: 1em 0;
+border-radius: .25em;
+background-color: rgba(127, 127, 127, 0.05);
+}
+.webex-total_correct {
+margin-left: 1em;
+}
+.unchecked .webex-total_correct {
+display: none;
+}
+.unchecked .webex-incorrect,
+.unchecked .webex-correct {
+border: 2px dotted grey !important;
+background-color: white !important;
 }
 
+.webex-select, input.webex-solveme,
+.unchecked .webex-radiogroup label.webex-incorrect,
+.unchecked .webex-radiogroup label.webex-correct{
+border: 2px dotted grey;
+background-color: white;
+border-radius: 0.25em;
+}
 .webex-incorrect,
-.webex-radiogroup label.webex-incorrect{
-border: 2px dotted var(--pink);
-background-color: #edaddd;
+input.webex-solveme.webex-incorrect,
+.webex-radiogroup label.webex-incorrect {
+border: 2px dotted var(--incorrect);
+background-color: var(--incorrect_alpha);
+color: black;
 border-radius: 0.25em;
 }
 .webex-correct,
+input.webex-solveme.webex-correct,
 .webex-radiogroup label.webex-correct {
-border: 2px solid var(--green);
-background-color: #c0edc2;
+border: 2px solid var(--correct);
+background-color: var(--correct_alpha);
+color: black;
 border-radius: 0.25em;
+}
+.unchecked .webex-incorrect span::before,
+.unchecked .webex-incorrect + .webex-icon::after,
+.unchecked .webex-correct span::before,
+.unchecked .webex-correct + .webex-icon::after {
+content: " ";
+}
+.webex-incorrect span::before,
+.webex-incorrect + .webex-icon::after {
+content: "\274C ";
+}
+.webex-correct span::before,
+.webex-correct + .webex-icon::after {
+content: "\2705 ";
 }
 
 .webex-solution {
@@ -283,19 +326,19 @@ margin-bottom: 10px;
 }
 .webex-solution.open {
 height: auto;
-border: 2px solid var(--blue);
+border: 2px solid var(--highlight);
 border-radius: 5px;
 }
-.webex-solution button {
+.webex-solution button, .webex-check-button {
 height: 2em;
 margin-bottom: 0.5em;
 border-radius: 0.5em;
-background-color: var(--blue);
+background-color: var(--highlight);
 color: white;
 padding: 0 0.5em;
 }
 .webex-solution pre.sourceCode {
-border-color: var(--green);
+border-color: var(--correct);
 }
 .webex-radiogroup label {
 margin-left: 2em;
@@ -303,12 +346,16 @@ text-indent: -1em;
 padding-left: 0.5em;
 font-weight: 400;
 display: block;
-border: 2px solid rgba(255, 255, 255, 1);
+border: 2px solid rgba(255, 255, 255, 0);
+background-color: inherit;
 border-radius: 0.25em;
 }
 .webex-radiogroup label input {
 position: relative;
 left: -1em;
+}
+.webex-radiogroup {
+margin: 1em 0;
 }
 </style>
 
@@ -356,23 +403,17 @@ overflow-y: auto;
 border: 1px solid #ddd;
 border-radius: 4px;
 }
-.tabset-dropdown > .nav-tabs > li.active:before {
-content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+content: "\e259";
 font-family: 'Glyphicons Halflings';
 display: inline-block;
 padding: 10px;
 border-right: 1px solid #ddd;
 }
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-content: "";
-border: none;
-}
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-content: "";
+content: "\e258";
 font-family: 'Glyphicons Halflings';
-display: inline-block;
-padding: 10px;
-border-right: 1px solid #ddd;
+border: none;
 }
 .tabset-dropdown > .nav-tabs > li.active {
 display: block;
@@ -415,11 +456,11 @@ display: none;
 
 <h1 class="title toc-ignore">Differential Gene Expression -
 Visualization</h1>
-<h3 class="subtitle"><p>MADOBIS: Aplicaciones y Discusiones en
-Desarrollo Animal</p></h3>
+<h3 class="subtitle"><p>UAM23: New Technologies for Developmental
+Evolutionary Biology Studies</p></h3>
 <h4 class="author">H. Christoph Liedtke</h4>
 <address class="author_afil">
-Estación Biológica de Doñana<br><h4 class="date">2023-04-15</h4>
+Estación Biológica de Doñana<br><h4 class="date">2023-12-08</h4>
 
 </div>
 
@@ -428,13 +469,13 @@ Estación Biológica de Doñana<br><h4 class="date">2023-04-15</h4>
 <h4>Prepare environment</h4>
 <p>Set your working directory and load the libraries we will need.</p>
 <pre class="r"><code># set working directory
-setwd(&quot;~/Documents/git_projects/ADDA_taller2/&quot;)
+setwd(&quot;~/Documents/git_projects/UAM23_rnaseq/&quot;)
 
 # install pacman if not already installed
 if (!require(&quot;pacman&quot;)) install.packages(&quot;pacman&quot;)
 
 # use pacman to load libraries
-pacman::p_load(tidyverse,DESeq2, ageglm,ggVennDiagram, UpSetR,plotly,ggrepel)</code></pre>
+pacman::p_load(tidyverse,DESeq2, ageglm,ggVennDiagram,UpSetR,plotly,ggrepel,scico)</code></pre>
 <pre><code>## Warning: package &#39;ageglm&#39; is not available for this version of R
 ## 
 ## A version of this package for your version of R might be available elsewhere,
@@ -455,18 +496,10 @@ finished up with <code>DESeqResults</code> objects for pair-wise
 comparisons. These we saved as a list.</p>
 <p>The aim of this exercise is to explore these results in greater
 detail. To do that, it would be good to know the functions of the genes
-in the Pelobates genome. One important extra file that you will use for
-this, is therefore an annotation file generated through BLASTing the
-genes against the <a href="http://www.ensembl.org/Xenopus_tropicalis/Info/Index"><em>Xenopus
-tropicalis</em> proteome</a> available on Ensembl.</p>
-<p>In this exercise we will go through:</p>
-<ol style="list-style-type: decimal">
-<li>Comparing sets of genes (venn diagrams and upsets).</li>
-<li>Pairwise comparisons of fold change (MA plots and volcano
-plots).</li>
-<li>Making plots interactive.</li>
-<li>Make plots ready for publication!</li>
-</ol>
+in the <em>Pelobates cultripes</em> genome. One important extra file
+that you will use for this, is therefore an annotation file generated
+through BLASTing the genes against the Ensembl <a href="http://www.ensembl.org/Xenopus_tropicalis/Info/Index"><em>Xenopus
+tropicalis</em></a> proteome.</p>
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
@@ -479,7 +512,7 @@ dds&lt;-readRDS(&quot;./results/deseq2_dds.rds&quot;)
 res&lt;-readRDS(&quot;./results/deseq2_results.rds&quot;)
 
 # Load BLAST results
-xtrop&lt;-read_csv(&quot;./data/PCU23_annotations_xtr105.csv&quot;)</code></pre>
+xtrop&lt;-read_csv(&quot;data/PCU23_annotations_xtr105_genes.csv&quot;)</code></pre>
 <div id="a-comment-on-the-annotation-file" class="section level3">
 <h3>A comment on the annotation file</h3>
 <p>If we take a closer look at the annotation file, we should notice a
@@ -495,17 +528,10 @@ peptide ids, names and descriptions. These have been derived from either
 a BLASTx or BLASTp search (using <a href="https://github.com/bbuchfink/diamond">diamond</a>). We used the
 <em>Xenopus tropicalis</em> Ensembl v105 proteome as a target for this
 search. These are therefore <strong>homolog annotations</strong>.</p>
-<p>You should also be aware that the <code>gene_id</code> column does
-not contain unique identifiers. This is because the same gene can give
-rise to multiple transcripts. For now, we can load a second annotation
-file, where I have collapse these duplicates so that we have a
-gene-level annotation table.</p>
-<pre class="r"><code>xtrop&lt;-read_csv(&quot;data/PCU23_annotations_xtr105_genes.csv&quot;)
-head(xtrop)</code></pre>
 </div>
 </div>
-<div id="comparing-sets-of-significant-genes" class="section level2">
-<h2>Comparing sets of significant genes</h2>
+<div id="comparing-sets" class="section level2">
+<h2>Comparing sets</h2>
 <p>As a reminder, calling <code>summary()</code> on our
 <code>DESeqResults</code> objects, returns the number (and percentage)
 of significant up and down regulated genes for a specific pair-wise
@@ -546,9 +572,9 @@ str(sig_deg)</code></pre>
 sets, for the dorsal-ventral comparisons for the black and the white
 tadpoles</p>
 <pre class="r"><code># comparing just the dorsal vs. ventral
-ggVennDiagram(sig_deg[c(&quot;bD_bV&quot;,&quot;wD_wV&quot;)],
-              label_alpha = 0) +
-  scale_fill_gradient(low=&quot;blue&quot;,high = &quot;gold&quot;)</code></pre>
+sig_deg[c(&quot;bD_bV&quot;,&quot;wD_wV&quot;)] %&gt;%
+  ggVennDiagram(edge_size = 0) +
+  scale_fill_scico(palette = &quot;batlow&quot;)</code></pre>
 <blockquote>
 <p><em>Question:</em> What does this tell us?</p>
 </blockquote>
@@ -570,9 +596,8 @@ sets? i.e. go ahead and make a Venn diagram comparing all four sets.</p>
 <button>
 Show Answer
 </button>
-<pre class="r"><code>ggVennDiagram(sig_deg,
-              label_alpha = 0) +
-  scale_fill_gradient(low=&quot;blue&quot;,high = &quot;gold&quot;)</code></pre>
+<pre class="r"><code>ggVennDiagram(sig_deg,edge_size = 0) +
+  scale_fill_scico(palette = &quot;batlow&quot;)</code></pre>
 <ul>
 <li>The largest shared set is still the Dorsal-Ventral comparisons of
 black and white tadpoles.</li>
@@ -590,9 +615,6 @@ an &quot;upset&quot; diagram. This shows exactly the same information.</p>
       set_size.scale_max = max(sapply(sig_deg, length))+50, # needed only to expand the axis a bit
       text.scale = c(1.2, 1.2, 1.2, 1.2, 1.5, 1.5),
       order.by=c(&quot;degree&quot;,&quot;freq&quot;))</code></pre>
-<p>This plot tells us that the largest set of genes is shared between
-the two dorsal-ventral comparisons. After that, the next largest sets
-are comparison-specific.</p>
 <blockquote>
 <p><em>Question:</em> What do we think? is this easier to interpret? Is
 there any additional information we can gain from this?</p>
@@ -609,8 +631,118 @@ information shown is the set size (the horizontal barplot).</li>
 </div>
 <div id="plotting-fold-changes" class="section level2">
 <h2>Plotting fold changes</h2>
-<div id="ma-plot" class="section level3">
-<h3>MA plot</h3>
+<div id="volcano-plot" class="section level3">
+<h3>Volcano plot</h3>
+<p>A plot you may also have seen is a &quot;Volcano&quot; plot, where you are
+showing the log fold change plotted against the adjusted p-values per
+gene. To make small p-values very large, the p-values are usually
+-log10() transformed. The most basic plot would look like this:</p>
+<pre class="r"><code>res$bD_bV %&gt;%
+  as_tibble(rownames = &quot;gene_id&quot;) %&gt;%
+  ggplot(aes(x=log2FoldChange, y=-log10(padj))) +
+  geom_point(alpha=0.75, shape=16)</code></pre>
+<p>However, we want to squeeze as much information out of it as
+possible, so we will add the following:</p>
+<ul>
+<li>Remove all points that are far from being significant.</li>
+<li>Colour-code points that fall within the bounds of our significance
+thresholds (padj&lt;0.05 and absolute log fold change &gt; 2)</li>
+<li>add annotations to the points (Gene IDs and the gene
+descriptions)</li>
+<li>plot all comparisons together</li>
+<li>make the plot interactive!</li>
+</ul>
+<pre class="r"><code>gg_res &lt;- res %&gt;%
+  lapply(as_tibble,rownames = &quot;gene_id&quot;) %&gt;%
+  bind_rows(.id=&quot;comparison&quot;) %&gt;%
+  drop_na(padj) %&gt;% # drop all genes with NAs
+  filter(padj&lt;0.5) %&gt;% # reduce the number of points that need to be plotted
+  mutate(sig= padj&lt;0.05 &amp; abs(log2FoldChange)&gt;=2) %&gt;% # make a variable to indicate if a gene is significant based on a specific thresholds
+  left_join(xtrop, by=c(&quot;gene_id&quot;)) %&gt;% # add annotations
+  ggplot(aes(x=log2FoldChange, y=-log10(padj), color=sig,
+            text=paste0(&quot;&lt;/br&gt;Pcu23 gene: &quot;, gene_id,
+                        &quot;&lt;/br&gt;Pcu23 peptide: &quot;, pep_description,
+                       &quot;&lt;/br&gt;X.tr peptide: &quot;, xtr_pep_name_x
+                       )
+         )) +
+  geom_point(alpha=0.75, shape=16) +
+  facet_wrap(~comparison, ncol = 2, scales = &quot;free&quot;) +
+  xlim(-15,15) +
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;)
+
+gg_res
+
+# we can now turn this into an interactive plot:
+ggplotly(gg_res, tooltip=&quot;text&quot;)</code></pre>
+<blockquote>
+<p><em>Question:</em> What gene are positively differentially expressed
+when comparing the black vs. the white dorsal tissue?</p>
+</blockquote>
+<div class="webex-solution">
+<button>
+Show Answer
+</button>
+<ul>
+<li>Seleno W</li>
+<li>OX-2 membrane glyco-like</li>
+<li>oca2</li>
+<li>PMEL</li>
+</ul>
+<p><em>Some other comments:</em></p>
+<ul>
+<li>Remember, the second contrast is always the reference, or baseline.
+This means, that <code>wD</code> (white dorsal) is the reference, and so
+a positive fold change means genes are over-expressed in the
+<em>treatment</em>, which is the black dorsal tissue.</li>
+<li>Notice also that some of them are missing annotations... is this a
+problem?</li>
+<li>If we wanted to know more about the function of these genes, we need
+to turn to online references, such as UNIPROT, e.g. <a href="https://www.uniprot.org/uniprot/P40967">PMEL</a></li>
+</ul>
+</div>
+<p>We could also make publication-ready, static plots with annotations
+of specific genes. For example, all the significant DEGs for the black
+dorsal vs. white dorsal.</p>
+<pre class="r"><code>res$bD_wD %&gt;%
+  as_tibble(rownames = &quot;gene_id&quot;) %&gt;%
+  drop_na(padj) %&gt;% # drop all genes with NAs
+  #filter(padj&lt;0.99) %&gt;% # reduce the number of points that need to be plotted
+  mutate(sig= padj&lt;0.05 &amp; abs(log2FoldChange)&gt;=2) %&gt;% # make a variable to indicate if a gene is significant based on a specific thresholds
+  left_join(xtrop, by=c(&quot;gene_id&quot;)) %&gt;% # add annotations
+  filter(padj&lt;0.5) %&gt;%
+  ggplot(aes(x=log2FoldChange, y=-log10(padj), color=sig)) +
+  geom_point(alpha=0.75, shape=16) +
+  geom_text_repel(data=. %&gt;% filter(sig),
+                  aes(label=xtr_pep_name_x),
+                  max.overlaps = 50,
+                  size=2) +
+  xlim(-10,10) +
+  ggtitle(&quot;DEGs in Black Dorsal Skin in Comparison to White Dorsal Skin&quot;) +
+  theme_bw() +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<blockquote>
+<p><em>Question:</em> What have we learned about the gene expression
+that controls pigemnation plasticity in dorsal skin of these
+tadpoles?</p>
+</blockquote>
+<div class="webex-solution">
+<button>
+Show Answer
+</button>
+<p>Just some of the many answers:</p>
+<ul>
+<li>Pigmentation changes involve melanin biosynthesis (pmel, oca2,
+mlana).</li>
+<li>It also involves carotenoids! (bco2l)</li>
+<li>There are many differentially expressed genes which may be
+important, but they are not annotated.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="extras---shrinking-the-ma-plot" class="section level2">
+<h2>Extras - Shrinking the MA plot</h2>
 <p>In the previous exercise, we looked at MA-plots. We used them mostly
 as a diagnostic plot, but very often, you will also see them in
 publications, to display a ratio of gene expression (the fold change)
@@ -621,13 +753,13 @@ remind us what this looks like:</p>
 plot.</p>
 <p>The DESeq2 package incorporates a prior on log2 fold changes,
 resulting in moderated estimates from genes with low counts and highly
-variable counts, as can be seen by the spread of points on the left side
-of the MA plot. These have relatively high fold changes, but are not
-identified as significant.</p>
-<p>A useful exercise to reduce this <em>noise</em> of the low-count
-genes is to apply a &quot;shrinkage&quot; method, which pulls the fold change of
-these low count, high variability genes closer to zero. The most widely
-used type is the <code>apglm</code> method.</p>
+variable counts, as can be seen by the narrowing of spread of points on
+the left side of the MA plot. This is called &quot;shrinkage&quot; and is done to
+avoid that these values, which otherwise would frequently be
+unrealistically large, dominate the top-ranked log fold changes.</p>
+<p>A useful exercise to reduce the noise of the low-count genes is to
+apply a more aggressive shrinkage method. The most widely used type is
+the <code>apglm</code> method.</p>
 <pre class="r"><code># apeglm shrinkage can only be done on already calculated coefficients:
 resultsNames(dds)
 
@@ -679,124 +811,6 @@ changes are very large, are pulled towards 0 with the shrinkage.</li>
 </ul>
 </div>
 </div>
-<div id="volcano-plot" class="section level3">
-<h3>Volcano plot</h3>
-<p>A plot you may also have seen is a &quot;Volcano&quot; plot, where you are
-showing the log fold change plotted against the adjusted p-values per
-gene. To make small p-values very large, the p-values are usually
--log10() transformed. The most basic plot would look like this:</p>
-<pre class="r"><code>res$bD_bV %&gt;%
-  as_tibble(rownames = &quot;gene_id&quot;) %&gt;%
-  ggplot(aes(x=log2FoldChange, y=-log10(padj))) +
-  geom_point(alpha=0.75, shape=16)</code></pre>
-<p>However, we want to squeeze as much information out of it as
-possible, so we will add the following:</p>
-<ul>
-<li>Remove all points that are far from being significant.</li>
-<li>Colour-code points that fall within the bounds of our significance
-thresholds (padj&lt;0.05 and absolute log fold change &gt; 2)</li>
-<li>add annotations to the points (Gene IDs and the gene
-descriptions)</li>
-<li>plot all comparisons together</li>
-</ul>
-<pre class="r"><code>gg_res &lt;- res %&gt;%
-  lapply(as_tibble,rownames = &quot;gene_id&quot;) %&gt;%
-  bind_rows(.id=&quot;comparison&quot;) %&gt;%
-  drop_na(padj) %&gt;% # drop all genes with NAs
-  filter(padj&lt;0.5) %&gt;% # reduce the number of points that need to be plotted
-  mutate(sig= padj&lt;0.05 &amp; abs(log2FoldChange)&gt;=2) %&gt;% # make a variable to indicate if a gene is significant based on a specific thresholds
-  left_join(xtrop, by=c(&quot;gene_id&quot;)) %&gt;% # add annotations
-  ggplot(aes(x=log2FoldChange, y=-log10(padj), color=sig,
-            text=paste0(&quot;&lt;/br&gt;Pcu23 gene: &quot;, gene_id,
-                        &quot;&lt;/br&gt;Pcu23 peptide: &quot;, pep_description,
-                       &quot;&lt;/br&gt;X.tr peptide: &quot;, xtr_pep_name_x
-                       )
-         )) +
-  geom_point(alpha=0.75, shape=16) +
-  facet_wrap(~comparison, ncol = 2, scales = &quot;free&quot;) +
-  xlim(-15,15) +
-  theme_minimal() +
-  theme(legend.position = &quot;none&quot;)
-
-gg_res</code></pre>
-</div>
-<div id="making-plots-interactive" class="section level3">
-<h3>Making plots interactive</h3>
-<p>As a final tweak, we will take advantage of the <code>plotly</code>
-package, to turn any (or almost any) ggplot object into an interactive,
-javascript plot! This is literally as easy as:</p>
-<pre class="r"><code>ggplotly(gg_res, tooltip = &quot;text&quot;)</code></pre>
-<p>Notice that the &quot;text&quot; that is shown when hovering over genes can be
-defined in the aesthetic of the ggplot object.</p>
-<blockquote>
-<p><em>Question:</em> What gene are positively differentially expressed
-when comparing the black vs. the white dorsal tissue?</p>
-</blockquote>
-<div class="webex-solution">
-<button>
-Show Answer
-</button>
-<ul>
-<li>Seleno W</li>
-<li>OX-2 membrane glyco-like</li>
-<li>oca2</li>
-<li>PMEL</li>
-</ul>
-<p><em>Some other comments:</em></p>
-<ul>
-<li>Remember, the second contrast is always the reference, or baseline.
-This means, that <code>wD</code> (white dorsal) is the reference, and so
-a positive fold change means genes are over-expressed in the
-<em>treatment</em>, which is the black dorsal tissue.</li>
-<li>Notice also that some of them are missing annotations... is this a
-problem?</li>
-<li>If we wanted to know more about the function of these genes, we need
-to turn to online references, such as UNIPROT, e.g. <a href="https://www.uniprot.org/uniprot/P40967">PMEL</a></li>
-</ul>
-</div>
-</div>
-<div id="making-publication-ready-plots" class="section level3">
-<h3>Making publication-ready plots</h3>
-<p>We could also make publication-ready, static plots with annotations
-of specific genes. For example, all the significant DEGs for the black
-dorsal vs. white dorsal.</p>
-<pre class="r"><code>res$bD_wD %&gt;%
-  as_tibble(rownames = &quot;gene_id&quot;) %&gt;%
-  drop_na(padj) %&gt;% # drop all genes with NAs
-  #filter(padj&lt;0.99) %&gt;% # reduce the number of points that need to be plotted
-  mutate(sig= padj&lt;0.05 &amp; abs(log2FoldChange)&gt;=2) %&gt;% # make a variable to indicate if a gene is significant based on a specific thresholds
-  left_join(xtrop, by=c(&quot;gene_id&quot;)) %&gt;% # add annotations
-  filter(padj&lt;0.5) %&gt;%
-  ggplot(aes(x=log2FoldChange, y=-log10(padj), color=sig)) +
-  geom_point(alpha=0.75, shape=16) +
-  geom_text_repel(data=. %&gt;% filter(sig),
-                  aes(label=xtr_pep_name_x),
-                  max.overlaps = 50,
-                  size=2) +
-  xlim(-10,10) +
-  ggtitle(&quot;DEGs in Black Dorsal Skin in Comparison to White Dorsal Skin&quot;) +
-  theme_bw() +
-  theme(legend.position = &quot;none&quot;)</code></pre>
-<blockquote>
-<p><em>Question:</em> What have we learned about the gene expression
-that controls pigemnation plasticity in dorsal skin of these
-tadpoles?</p>
-</blockquote>
-<div class="webex-solution">
-<button>
-Show Answer
-</button>
-<p>Just some of the many answers:</p>
-<ul>
-<li>Pigmentation changes involve melanosome biogeneis (pmel, oca2,
-mlana).</li>
-<li>It also involves carotenoids! (bco2l)</li>
-<li>There are many differentially expressed genes which may be
-important, but they are not annotated.</li>
-</ul>
-</div>
-</div>
-</div>
 
 <script>
 
@@ -804,25 +818,41 @@ important, but they are not annotated.</li>
 update_total_correct = function() {
   console.log("webex: update total_correct");
 
-  if (t = document.getElementById("webex-total_correct")) {
-    var correct = document.getElementsByClassName("webex-correct").length;
-    var solvemes = document.getElementsByClassName("webex-solveme").length;
-    var radiogroups = document.getElementsByClassName("webex-radiogroup").length;
-    var selects = document.getElementsByClassName("webex-select").length;
-    
-    t.innerHTML = correct + " of " + (solvemes + radiogroups + selects) + " correct";
+  var t = document.getElementsByClassName("webex-total_correct");
+  for (var i = 0; i < t.length; i++) {
+    p = t[i].parentElement;
+    var correct = p.getElementsByClassName("webex-correct").length;
+    var solvemes = p.getElementsByClassName("webex-solveme").length;
+    var radiogroups = p.getElementsByClassName("webex-radiogroup").length;
+    var selects = p.getElementsByClassName("webex-select").length;
+
+    t[i].innerHTML = correct + " of " + (solvemes + radiogroups + selects) + " correct";
   }
 }
 
 /* webex-solution button toggling function */
 b_func = function() {
   console.log("webex: toggle hide");
-  
+
   var cl = this.parentElement.classList;
   if (cl.contains('open')) {
     cl.remove("open");
   } else {
     cl.add("open");
+  }
+}
+
+/* check answers */
+check_func = function() {
+  console.log("webex: check answers");
+
+  var cl = this.parentElement.classList;
+  if (cl.contains('unchecked')) {
+    cl.remove("unchecked");
+    this.innerHTML = "Hide Answers";
+  } else {
+    cl.add("unchecked");
+    this.innerHTML = "Show Answers";
   }
 }
 
@@ -876,9 +906,9 @@ solveme_func = function(e) {
 /* function for checking select answers */
 select_func = function(e) {
   console.log("webex: check select");
-  
+
   var cl = this.classList
-  
+
   /* add style */
   cl.remove("webex-incorrect");
   cl.remove("webex-correct");
@@ -887,7 +917,7 @@ select_func = function(e) {
   } else if (this.value != "blank") {
     cl.add("webex-incorrect");
   }
-  
+
   update_total_correct();
 }
 
@@ -898,25 +928,25 @@ radiogroups_func = function(e) {
   var checked_button = document.querySelector('input[name=' + this.id + ']:checked');
   var cl = checked_button.parentElement.classList;
   var labels = checked_button.parentElement.parentElement.children;
-  
+
   /* get rid of styles */
   for (i = 0; i < labels.length; i++) {
     labels[i].classList.remove("webex-incorrect");
     labels[i].classList.remove("webex-correct");
   }
-  
+
   /* add style */
   if (checked_button.value == "answer") {
     cl.add("webex-correct");
   } else {
     cl.add("webex-incorrect");
   }
-  
+
   update_total_correct();
 }
 
 window.onload = function() {
-  console.log("onload");
+  console.log("webex onload");
   /* set up solution buttons */
   var buttons = document.getElementsByTagName("button");
 
@@ -924,6 +954,22 @@ window.onload = function() {
     if (buttons[i].parentElement.classList.contains('webex-solution')) {
       buttons[i].onclick = b_func;
     }
+  }
+
+  var check_sections = document.getElementsByClassName("webex-check");
+  console.log("check:", check_sections.length);
+  for (var i = 0; i < check_sections.length; i++) {
+    check_sections[i].classList.add("unchecked");
+
+    let btn = document.createElement("button");
+    btn.innerHTML = "Show Answers";
+    btn.classList.add("webex-check-button");
+    btn.onclick = check_func;
+    check_sections[i].appendChild(btn);
+
+    let spn = document.createElement("span");
+    spn.classList.add("webex-total_correct");
+    check_sections[i].appendChild(spn);
   }
 
   /* set up webex-solveme inputs */
@@ -951,18 +997,21 @@ window.onload = function() {
     /* attach checking function */
     solveme[i].onkeyup = solveme_func;
     solveme[i].onchange = solveme_func;
+
+    solveme[i].insertAdjacentHTML("afterend", " <span class='webex-icon'></span>")
   }
-  
+
   /* set up radiogroups */
   var radiogroups = document.getElementsByClassName("webex-radiogroup");
   for (var i = 0; i < radiogroups.length; i++) {
     radiogroups[i].onchange = radiogroups_func;
   }
-  
+
   /* set up selects */
   var selects = document.getElementsByClassName("webex-select");
   for (var i = 0; i < selects.length; i++) {
     selects[i].onchange = select_func;
+    selects[i].insertAdjacentHTML("afterend", " <span class='webex-icon'></span>")
   }
 
   update_total_correct();
