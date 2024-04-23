@@ -1,7 +1,7 @@
 ---
 title: "Differential Gene Expression"
 subtitle: | 
-  UAM23: New Technologies for Developmental Evolutionary Biology Studies
+  Aplicaciones y Discusiones en Desarrollo Animal - Taller 2
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
@@ -27,7 +27,7 @@ Set your working directory and load the libraries we will need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/UAM23_rnaseq/")
+setwd("~/Documents/git_projects/ADDA_taller2/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")

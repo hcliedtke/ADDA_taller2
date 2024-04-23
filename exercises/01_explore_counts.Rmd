@@ -1,11 +1,11 @@
 ---
 title: "Exploring RNA-Seq Count Data"
 subtitle: | 
-  UAM23: New Technologies for Developmental Evolutionary Biology Studies
+  Aplicaciones y Discusiones en Desarrollo Animal - Taller 2
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-12-08'
+date: '2024-04-23'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -14,7 +14,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      eval = TRUE,
+                      eval = FALSE,
                       message=FALSE,
                       error=FALSE)
 knitr::opts_knit$set(root.dir = '../')
@@ -28,7 +28,7 @@ A good first thing to do when running any R script, is to set your working envir
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/UAM23_rnaseq/")
+setwd("~/Documents/git_projects/ADDA_taller2/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")

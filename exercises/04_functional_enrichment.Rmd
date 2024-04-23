@@ -1,11 +1,11 @@
 ---
 title: "Functional Enrichment"
 subtitle: | 
-  UAM23: New Technologies for Developmental Evolutionary Biology Studies
+  Aplicaciones y Discusiones en Desarrollo Animal - Taller 2
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-12-08'
+date: '2024-04-23'
 output: webexercises::webexercises_default
 editor_options: 
   chunk_output_type: console
@@ -28,7 +28,7 @@ Set your working directory and load the libraries we need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/UAM23_rnaseq/")
+setwd("~/Documents/git_projects/ADDA_taller2/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
@@ -157,7 +157,7 @@ An important thing to remember is that the associated R package `gprofiler2` is 
 
 ```{r}
 # set base url:
-set_base_url("https://biit.cs.ut.ee/gprofiler_archive3/e105_eg52_p16")
+set_base_url("https://biit.cs.ut.ee/gprofiler_archive3/e105_eg52_p16/")
 
 
 # run the analysis
