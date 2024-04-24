@@ -415,15 +415,9 @@ plotDispEsts(dds)
 
 `r hide("Show Answer")`
 
-* The "final" count estimates (in blue) are closer to the red, fitted line (the model estimates) than the original gene counts. I.e. the dispersion correction is working as expected.
 * Genes with low counts have higher dispersion, but this curve flattens out.
 * Genes that have much higher dispersion than expected are identified as outliers (black dot with blue circles). These are NOT "shrunk". This is due to the likelihood that the gene does not follow the modeling assumptions and has higher variability than others for biological or technical reasons. Shrinking these could result in the detection of false positives.
 `r unhide()`
 
 All-in-all it looks good!
 
-> _Question:_ Why is there only 1 plot, but for the p-value distributions there was one for each comparison?
-
-`r hide("Show Answer")`
-Only a single binomial model is fitted to each gene, i.e. there is only a single dispersion estimate and mean normalized count across all samples per gene.
-`r unhide()`

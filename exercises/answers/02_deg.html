@@ -1215,9 +1215,6 @@ this plot?</p>
 Show Answer
 </button>
 <ul>
-<li>The &quot;final&quot; count estimates (in blue) are closer to the red, fitted
-line (the model estimates) than the original gene counts. I.e. the
-dispersion correction is working as expected.</li>
 <li>Genes with low counts have higher dispersion, but this curve
 flattens out.</li>
 <li>Genes that have much higher dispersion than expected are identified
@@ -1229,18 +1226,6 @@ false positives.</li>
 </ul>
 </div>
 <p>All-in-all it looks good!</p>
-<blockquote>
-<p><em>Question:</em> Why is there only 1 plot, but for the p-value
-distributions there was one for each comparison?</p>
-</blockquote>
-<div class="webex-solution">
-<button>
-Show Answer
-</button>
-<p>Only a single binomial model is fitted to each gene, i.e. there is
-only a single dispersion estimate and mean normalized count across all
-samples per gene.</p>
-</div>
 </div>
 </div>
 
