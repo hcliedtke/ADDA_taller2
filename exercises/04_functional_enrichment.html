@@ -480,23 +480,72 @@ pacman::p_load(tidyverse,gprofiler2, scico)</code></pre>
 <h2>Background</h2>
 <p>From the previous exercises on differential gene expression, we
 looked at some comparisons that resulted in &gt;300 genes that were over
-or under expressed. It is not trivial to make sense of that many genes.
-One way to try to distill this large list of genes is a functional
+or under expressed. It is not trivial to make sense of the biological
+significance of that many genes. One way to try to distill this large
+list of genes into biological functions is to perform a functional
 enrichment analysis. Essentially, we want to use curated lists of genes
-that belong to a specific functional category. Perhaps the most widely
-used knowledge base of this kind, is the <a href="http://geneontology.org/">Gene Ontology</a>, but there are others,
-such as the [Kyoto Encyclopedia of Genes and Genomes] (<a href="https://www.genome.jp/kegg/" class="uri">https://www.genome.jp/kegg/</a>) and the <a href="https://reactome.org/">Reactome</a>.</p>
-<p>Functional enrichment analyses might be a little tricky to get your
-head around, because they involve many parts. In brief, the aim is to
-identify whether genes that belong to sets of annotated genes (e.g. a GO
-term) are over-represented (i.e. enriched) in a set of genes of interest
-(e.g. a list of differentially expressed genes). Often, this is also
-called a <code>Over Representation Analysis</code>.</p>
+that belong to a specific functional category and test whether some of
+these are over represented in our case. Perhaps the most widely used
+knowledge base of this kind, is the <a href="http://geneontology.org/">Gene Ontology</a>, but there are others,
+such as the <a href="https://www.genome.jp/kegg/">Kyoto Encyclopedia of
+Genes and Genomes</a> and the <a href="https://reactome.org/">Reactome</a>. This is also called a
+<code>Functional Enrichment</code> or
+<code>Over Representation Analysis</code></p>
+<p>Let&#39;s say we are interested in a single biological process: melanin
+biosynthesis. Conveniently, a GO term for this exists: <a href="https://www.ebi.ac.uk/QuickGO/term/GO:0042438">GO:0042438</a>, as
+well as a <em>Xenopus</em>-specific Reactome pathway <a href="https://reactome.org/content/detail/R-XTR-5662702">R-XTR-5662702</a>.
+Essentially, what we want to do is see how many of our differentially
+expressed genes are either part of this term or not. This would result
+in a contingency table like this:</p>
+<table>
+<colgroup>
+<col width="38%" />
+<col width="28%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">Melanin biosynthesis</th>
+<th align="center">Not melanin biosynthesis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Differentially expressed</td>
+<td align="center">a</td>
+<td align="center">b</td>
+</tr>
+<tr class="even">
+<td>Not differentially expressed</td>
+<td align="center">c</td>
+<td align="center">d</td>
+</tr>
+</tbody>
+</table>
+<p>We can now perform a Fisher&#39;s exact test to get a p-value that would
+tell us whether genes associated with melanin biosynthesis are over
+represented in our list of differentially expressed genes. You can
+imagine however that we don&#39;t just want to test this single functional
+group, but many. We are therefore going to repeat this with all of the
+terms in the Gene Ontology for example. That many tests therefore
+requires a multiple-test correction, to get an adjusted p-value.</p>
+<p>One final thing that we have to keep in mind is the
+<em>background</em> or <em>universe</em>. This refers to the total list
+of genes that we will compare your set of genes to. Imagine we compare
+our set of genes that we obtained from skin samples to a full list of
+genes from the whole genome. In this case, it would be highly likely
+that we will get a lot of enriched terms or functions related to
+processes occurring in the skin. While this is not wrong, it is also not
+informative, because what we are interested in, is in <em>differences in
+enriched skin-specific functions</em> between two conditions. We
+therefore ideally want to restrict our background set to only those
+genes that we realistically expect to find in our samples.</p>
 <p>To perform such as test, we therefore need:</p>
 <ol style="list-style-type: decimal">
-<li>A list of loci that are of biological interest (e.g. list of
-experimentally derived DEGs). These need to be annotated! That is, we
-need to know if these loci are genes with a known function (i.e.
+<li>A list of genes/transcripts that are of biological interest (e.g.
+list of experimentally derived DEGs). These need to be annotated! That
+is, we need to know if these loci are genes with a known function (i.e.
 annotated).</li>
 <li>A &#39;background&#39; list of genes, that includes any gene that
 <em>could</em> have been differentially expressed in the analysis.</li>
@@ -595,9 +644,7 @@ differentially expressed. But what is this?</p>
 Show Answer
 </button>
 <p>It is not always clear, but in this case, I would argue that the
-tissue-specific transcriptome is the closest right answer. Even here,
-there are complications. We treat all skin to be the same tissue, but
-clearly the dorsal and ventral skin are very different.</p>
+tissue-specific transcriptome is the closest right answer.</p>
 <p>We will use the full set of genes that were returned by
 <code>DESeq2</code>. This set should have filtered out genes that have
 low counts (i.e. unlikely to be expressed across any of our
@@ -718,7 +765,7 @@ tables and ggplot.</p>
   ggplot(aes(x=GeneRatio, y=term_name)) +
   geom_point(aes(color=p_value, size=intersection_size)) +
   ylab(&quot;&quot;) +
-  scale_color_scico(palette = &quot;batlow&quot;, direction = -1) +
+  scale_color_scico(palette = &quot;batlow&quot;, direction = 1) +
   facet_grid(source~query,scales = &quot;free_y&quot;,space = &quot;free&quot;) +
   theme_bw()</code></pre>
 <blockquote>
@@ -730,15 +777,13 @@ learned about the pigmentation plasticity of tadpoles?</p>
 <button>
 Show Answer
 </button>
-<p>We have learned for example that: * Melanin differential biosynthesis
-is relevant for all comparisons (even white ventral and black ventral?).
-* Dorsal-ventral differentiation is much more complicated and involves
-many. non-pigment related processes such as &quot;system development&quot; and
-&quot;extracellular matrix&quot;. * There is still a clear singal of dark vs.
-light tadpole though. For the Biological Process ontogeny,
-pigmentation-related processes are mostly enriched in the black
-dorsal-ventral comparison and a little bit in the black-vs-white dorsum
-comparison.</p>
+<p>We have learned for example that:</p>
+<ul>
+<li>Melanin differential biosynthesis is relevant for all comparisons
+(even white ventral and black ventral?).</li>
+<li>Dorsal-ventral differentiation involves other, non-pigment related
+processes such as &quot;system development&quot; and &quot;extracellular matrix&quot;.</li>
+</ul>
 </div>
 </div>
 <div id="concluding-remarks" class="section level2">
