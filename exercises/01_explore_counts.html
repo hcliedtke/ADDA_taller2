@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2024-04-23" />
+<meta name="date" content="2025-04-07" />
 
 <title>Exploring RNA-Seq Count Data</title>
 
@@ -459,7 +459,7 @@ display: none;
 - Taller 2</p></h3>
 <h4 class="author">H. Christoph Liedtke</h4>
 <address class="author_afil">
-Estación Biológica de Doñana<br><h4 class="date">2024-04-23</h4>
+Estación Biológica de Doñana<br><h4 class="date">2025-04-07</h4>
 
 </div>
 
@@ -515,7 +515,7 @@ it.</li>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
 <p>Lets load the count data:</p>
-<pre class="r"><code>txi&lt;-readRDS(&quot;./data/salmon_gene_counts.rds&quot;)</code></pre>
+<pre class="r"><code>txi&lt;-readRDS(&quot;../data/salmon_gene_counts.rds&quot;)</code></pre>
 <p>For those of you unfamiliar, <code>.rds</code> files is a single R
 data object, created with <code>saveRDS()</code>. It is particularly
 useful for saving R objects that are not tabular, or more than
@@ -548,20 +548,17 @@ arranged?</p>
 <button>
 Show Answer
 </button>
-<ul>
-<li>All three arrays have target transcripts as rows and biological
-samples per column.</li>
-<li>Counts: estimate of the number of reads mapping to each
-transcript.</li>
-<li>Abundance: Raw counts cannot be compared across samples because each
-library may vary slightly in terms of the total number of reads,
-differences in sequencing bias and difference in transcript lengths.
-Salmon (the program we used to quantify reads) also produces an array of
-&quot;Abundances&quot; which are normalized counts. According to the <a href="https://salmon.readthedocs.io/en/latest/file_formats.html">salmon
+<p>* All three arrays have target transcripts as rows and biological
+samples per column. * Counts: estimate of the number of reads mapping to
+each transcript. * Abundance: Raw counts cannot be compared across
+samples because each library may vary slightly in terms of the total
+number of reads, differences in sequencing bias and difference in
+transcript lengths. Salmon (the program we used to quantify reads) also
+produces an array of &quot;Abundances&quot; which are normalized counts. According
+to the <a href="https://salmon.readthedocs.io/en/latest/file_formats.html">salmon
 documention</a>, this is Transcripts Per Million (TPM). This bastically
 means that per sample, the total counts add up to 1 million. We could
-check this:</li>
-</ul>
+check this:</p>
 <pre class="r"><code>apply(X=txi$abundance, FUN=sum, MARGIN = 2)</code></pre>
 <p>In this case, they don&#39;t quite add up to 1 million because I have
 already filtered this matrix, to remove non-coding and mitochondrial
@@ -600,7 +597,7 @@ in our data. For instance, we would expect biological replicates to
 cluster together.</p>
 <p>Let&#39;s load our design matrix. This is a .csv file where we have
 included some information on what these samples actually are:</p>
-<pre class="r"><code>samples&lt;-read.csv(&quot;./data/design_matrix.csv&quot;)</code></pre>
+<pre class="r"><code>samples&lt;-read.csv(&quot;../data/design_matrix.csv&quot;)</code></pre>
 <p>Take a closer look at this table.</p>
 <pre class="r"><code>samples</code></pre>
 <blockquote>
@@ -675,12 +672,9 @@ pca$x %&gt;%
 <button>
 Show Answer
 </button>
-<ul>
-<li>Most of the variance is explained by tissue type (separation along
-PC1)</li>
-<li>Treatment effect is not so clear, but some separation along
-PC2.</li>
-</ul>
+<p>* Most of the variance is explained by tissue type (separation along
+PC1) * Treatment effect is not so clear, but some separation along
+PC2.</p>
 </div>
 <blockquote>
 <p>Question: What about patterns within tissues? Try running this same
@@ -812,13 +806,10 @@ pheatmap(vst_subset,
 <button>
 Show Hint
 </button>
-<ul>
-<li>We again see that most of the difference in gene expression is
-between liver and skin tissue.</li>
-<li>The 8Li sample seems to have a very unique set of genes that are
-only over-expressed in that sample. It might be worth checking that
-sample more closely.</li>
-</ul>
+<p>* We again see that most of the difference in gene expression is
+between liver and skin tissue. * The 8Li sample seems to have a very
+unique set of genes that are only over-expressed in that sample. It
+might be worth checking that sample more closely.</p>
 </div>
 </div>
 </div>

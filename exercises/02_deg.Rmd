@@ -5,21 +5,22 @@ subtitle: |
 author:
 - name: "H. Christoph Liedtke"
   affiliation: "Estación Biológica de Doñana"
-date: '2023-12-08'
+date: '2025-04-07'
 output: webexercises::webexercises_default
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       eval = FALSE,
                       message=FALSE,
                       error=FALSE,
                       fig.width=12)
-knitr::opts_knit$set(root.dir = '../')
+knitr::opts_knit$set(root.dir = "./")
 library(webexercises)
+getwd()
 ```
-
 
 #### Prepare environment
 
@@ -27,39 +28,38 @@ Set your working directory and load the libraries we will need.
 
 ```{r eval=TRUE}
 # set working directory
-setwd("~/Documents/git_projects/ADDA_taller2/")
+#setwd("~/Documents/git_projects/ADDA_taller2/")
 
 # install pacman if not already installed
 if (!require("pacman")) install.packages("pacman")
-
+  
 # use pacman to load libraries
 pacman::p_load(tidyverse,DESeq2,viridis,scales)
 
 ```
 
-
 ## Background
 
 In the 1st exercise, we explored the RNA-Seq count data from salmon. We saw that this data:
 
-1. Has counts, abundances, lengths.
-2. Comes from different experimental treatments (dark vs. light backgrounds)
-3. Comes from different tissues (liver, dorsal skin, ventral skin)
+1.  Has counts, abundances, lengths.
+2.  Comes from different experimental treatments (dark vs. light backgrounds)
+3.  Comes from different tissues (liver, dorsal skin, ventral skin)
 
 The aim of this exercise is to go through a workflow for identifying genes that are significantly deferentially expressed when comparing two experimental treatments. We saw that the liver and skin samples were very different in their expression profiles. For this exercise, we will therefore only focus on the skin samples. This workflow entails the following general steps:
 
-1. Import quantification data.
-2. Perform a differential gene expression analysis using `DESeq2`.
-3. Evaluate the quality of the results.
-4. Summarize the results.
+1.  Import quantification data.
+2.  Perform a differential gene expression analysis using `DESeq2`.
+3.  Evaluate the quality of the results.
+4.  Summarize the results.
 
 ## Load data
 
 We will start by loading the quantification data from `salmon` and the design matrix of the experiment, just like we did for the previous exercise
 
 ```{r eval=TRUE}
-txi<-readRDS("./data/salmon_gene_counts.rds")
-samples<-read_csv("./data/design_matrix.csv")
+txi<-readRDS("../data/salmon_gene_counts.rds")
+samples<-read_csv("../data/design_matrix.csv")
 ```
 
 ### Subset data
@@ -95,19 +95,17 @@ dds
 
 You may have seen this type of object before, but it most likely is not as common as other types.
 
-> _Question:_ What is the structure of this object? Is there anything you are unfamiliar with?
+> *Question:* What is the structure of this object? Is there anything you are unfamiliar with?
 
 `r hide("Show Answer")`
 
-It is an S4 object system. R has three object oriented systems: S3, S4 and R5. You can read up about them [here](http://adv-r.had.co.nz/OO-essentials.html). For now, you just need to know that most often you will work with S3 objects, which can be conveniently accessed with `$` for example. S4 objects are a little different. They usually have data stored in "slots" which are indicated with `@`.
-`r unhide()`
-
+It is an S4 object system. R has three object oriented systems: S3, S4 and R5. You can read up about them [here](http://adv-r.had.co.nz/OO-essentials.html). For now, you just need to know that most often you will work with S3 objects, which can be conveniently accessed with `$` for example. S4 objects are a little different. They usually have data stored in "slots" which are indicated with `@`. `r unhide()`
 
 More specifically, it is a subclass of `RangedSummarizedExperiment`.
 
 ![](../assets/img/RangedSummarizedExperiment.png)
 
-This is a format widely used by packages in the Bioconductor ecosystem. The core of the object are assays (a single or multiple matrices) with samples as columns and freatures as rows. Features in this case are our genes or transcripts, but they may also be chromosomal coordinates etc. 
+This is a format widely used by packages in the Bioconductor ecosystem. The core of the object are assays (a single or multiple matrices) with samples as columns and features as rows. Features in this case are our genes or transcripts, but they may also be chromosomal coordinates etc.
 
 Working with this type of object sometimes requires specific "accessor" functions (or methods) to get at data stored in 'slots'. For example, the `dds` object we created, has two assays: `counts` and `avgTxLength`. We can access them with `assays()` function (note: different from `assay()`), or specific functions for specific assays (if these are available)
 
@@ -139,7 +137,7 @@ In this case it is empty, but you could imagine that you may have gene annotatio
 
 Feel free to read up more on this kind of `SummarizedExperiment` data object [here](https://bioconductor.org/packages/devel/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html).
 
-> _Question:_ What is different about count data stored in the dds object compared to the raw count data we imported?
+> *Question:* What is different about count data stored in the dds object compared to the raw count data we imported?
 
 `r hide("Show Answer")`
 
@@ -152,10 +150,9 @@ head(txi$counts)
 
 `r unhide()`
 
-
 ## Pre-filtering
 
-You may have seen that some workflows filter out genes that have very low counts, orwhose counts don't vary very much across samples. In theory, this is not necessary with DESeq2 as it will handle this on the fly (read more [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#pre-filtering)), but reducing the size of the matrix can greatly speeding up downstream calculations and reduce the memory requirements. 
+You may have seen that some workflows filter out genes that have very low counts, or whose counts don't vary very much across samples. In theory, this is not necessary with DESeq2 as it will handle this on the fly (read more [here](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#pre-filtering)), but reducing the size of the matrix can greatly speeding up downstream calculations and reduce the memory requirements.
 
 As we saw in the previous exercise, there are many liver-specific genes that most likely are not deferentially expressed in skin. There are therefore many rows of genes with 0 or very low counts. We can at least remove those:
 
@@ -168,28 +165,28 @@ dds <- dds[rowSums(counts(dds)) >= 10,]
 
 The ultimate goal of running such an analysis is to see if a given gene is expressed to a different degree in one condition vs. another condition. This sounds almost like a T-test, but things are not that simple. In this exercise, I don't want to focus too much on theory, but it is worth talking about what some of the "problematic" features are of the data:
 
-* Many counts are low, or even zero.
-* RNAseq data tends to exhibit overdispersion: the variance is much greater than the mean.
-* The target contigs (e.g. genes) are of different lengths. You would expect longer contigs to also have more mapped reads.
-* Each library (sample) consists of a different total number of reads.
-* RNAseq experiments tend to have few (usually three) replicates per condition.
-* There are typically thousands of genes, which means you are repeating the same pairwise test thousands of times.
-* Highly expressed genes tend to 'eat up' more reads during sequencing, meaning that genes that are less expressed tend to be underrepresented. This means changes in expression in highly expressed genes are easier to detect than changes in genes that are expressed at lower levels.
-  
+-   Many counts are low, or even zero.
+-   RNAseq data tends to exhibit over dispersion: the variance is much greater than the mean.
+-   The target contigs (e.g. genes) are of different lengths. You would expect longer contigs to also have more mapped reads.
+-   Each library (sample) consists of a different total number of reads.
+-   RNAseq experiments tend to have few (usually three) replicates per condition.
+-   There are typically thousands of genes, which means you are repeating the same pairwise test thousands of times.
+-   Highly expressed genes tend to 'eat up' more reads during sequencing, meaning that genes that are less expressed tend to be underrepresented. This means changes in expression in highly expressed genes are easier to detect than changes in genes that are expressed at lower levels.
+
 The differential expression analysis in `DESeq2` takes several steps to try to deal with these problems. At its core it fits generalized linear models with a negative binomial distribution to each gene. It takes into account the estimated counts per gene, normalized by library size, but also takes into account the size of the target genes/transcripts and calculates a dispersion parameter, which tells you about how far the observed count is from the mean counts estimated by the model.
-  
-It then performs a pairwise comparison of the level of expression per gene in condition A vs. condition B. It uses the models per gene to estimate coefficients and standard error for each sample group (i.e. for  condition A and condition B). These coefficients are the estimates of log2 fold change. 
-  
+
+It then performs a pairwise comparison of the level of expression per gene in condition A vs. condition B. It uses the models per gene to estimate coefficients and standard error for each sample group (i.e. for condition A and condition B). These coefficients are the estimates of log2 fold change.
+
 To test whether this log2 fold change for a given gene is significant, it then applies a statistical test (Wald test), to test the hypothesis that the parameter (log 2 fold change) is significantly different from 0. A multiple test correction is then applied, by default a version of the Benjamini-Hochberg False Discovery Rate (FDR). This is done by ranking the genes by p-value, then:
-  
+
 $adjusted\ p\ value = p\ value * \frac{total\ number\ of\ tests}{rank}$
-  
+
 In short, `DESeq2` does the following:
 
-1. Estimation of size factors (control for differences in the library size of the sequencing experiments)
-2. Estimation of dispersion (e.g. for problem of large within-group variability and low sample sizes)
-3. Negative binomial GLM fitting (good for modeling discrete counts with over-dispersion)
-4. Wald statistics calculation and multiple testing correction (statistical significance testing)
+1.  Estimation of size factors (control for differences in the library size of the sequencing experiments)
+2.  Estimation of dispersion (e.g. for problem of large within-group variability and low sample sizes)
+3.  Negative binomial GLM fitting (good for modeling discrete counts with over-dispersion)
+4.  Wald statistics calculation and multiple testing correction (statistical significance testing)
 
 These are all done with a single convenient function:
 
@@ -198,9 +195,9 @@ dds <- DESeq(dds)
 dds
 ```
 
-> _Note: it looks like we are "overwriting" the `dds` object, but really, we are just adding more inforamtion to it_
+> *Note: it looks like we are "overwriting" the `dds` object, but really, we are just adding more inforamtion to it*
 
-This incredibly convenient function has done all of the heavy lifting for us, and it has even run some pair-wise tests already, based on the `~condtion` variable we set.  
+This incredibly convenient function has done all of the heavy lifting for us, and it has even run some pair-wise tests already, based on the `~condtion` variable we set.
 
 We can access the names of the pairwise tests like so:
 
@@ -208,18 +205,17 @@ We can access the names of the pairwise tests like so:
 resultsNames(dds)
 ```
 
-> _Question:_ Is there anything unexpected about the list of pair-wise tests?
+> *Question:* Is there anything unexpected about the list of pair-wise tests?
 
-`r hide("Show Answer")`
-We had 4 treatment levels, which should result in a total of 6 pairwise comparisons. But here, there are only 3.
-   
+`r hide("Show Answer")` We had 4 treatment levels, which should result in a total of 6 pairwise comparisons. But here, there are only 3.
+
 This is because DESeq2 compares everything to a baseline condition. If this is not specified, it will use the first alphabetic factor level, which in this case is "black_dorsal". As a result only xxx_vs_black_dorsal comparisons are made.
 
 This is an important detail to remember: **the second factor is always considered to be the "base level" or "control" variable.**
 
 `r unhide()`
 
-## Examining differential expression analysis results 
+## Examining differential expression analysis results
 
 We can extract the results for the pair-wise tests from the `dds` object like so:
 
@@ -230,19 +226,19 @@ res
 
 If we don't specify anything else, it will extract just the first comparison. In this case "white ventral vs black dorsal". This table has the following information:
 
-1. Rows are genes.
-2. Per gene, there are 6 metrics:
-  * baseMean: mean of normalized counts for all samples divided by size factor (note: it does not take into account gene length).
-  * log2FoldChange: The effect size estimate. This value indicates how much the gene or transcript's expression seems to have changed between the comparison and control groups. This value is reported on a logarithmic scale to base 2.
-  * lfcSE: The standard error estimate for the log2 fold change estimate
-  * stat: The value of the test statistic for the gene or transcript.
-  * pvalue: P-value of the test for the gene or transcript.
-  * padj: Adjusted P-value for multiple testing for the gene or transcript.
+1.  Rows are genes.
+2.  Per gene, there are 6 metrics:
 
-> _Question:_ Is there anything unexpected about the adjusted p-values?
+-   baseMean: mean of normalized counts for all samples divided by size factor (note: it does not take into account gene length).
+-   log2FoldChange: The effect size estimate. This value indicates how much the gene or transcript's expression seems to have changed between the comparison and control groups. This value is reported on a logarithmic scale to base 2.
+-   lfcSE: The standard error estimate for the log2 fold change estimate
+-   stat: The value of the test statistic for the gene or transcript.
+-   pvalue: P-value of the test for the gene or transcript.
+-   padj: Adjusted P-value for multiple testing for the gene or transcript.
 
-`r hide("Show Answer")`
-Some of the adjusted p-values are `NA`. This is what the `DESeq2` handbook tells us:
+> *Question:* Is there anything unexpected about the adjusted p-values?
+
+`r hide("Show Answer")` Some of the adjusted p-values are `NA`. This is what the `DESeq2` handbook tells us:
 
 "If a row is filtered by automatic independent filtering, for having a low mean normalized count, then only the adjusted p value will be set to NA. Description and customization of independent filtering is described below".
 
@@ -255,8 +251,7 @@ counts(dds) %>%
   head()
 ```
 
-Indeed! all have very low counts!! they are therefore unreliable, and should rightfully not be included in the results.
-`r unhide()`
+Indeed! all have very low counts!! they are therefore unreliable, and should rightfully not be included in the results. `r unhide()`
 
 We could also extract results of specific comparisons. there are two ways to do this:
 
@@ -289,15 +284,13 @@ summary(res_bD_wD, alpha=0.05)
 summary(res_bV_wV, alpha=0.05)
 ```
 
-This returns the number of up-regulated genes (LFC>0) and down-regulated genes (LFC<0) with respect to the control variable. Other information is also given, such as the number of outliers and low counts. 
+This returns the number of up-regulated genes (LFC\>0) and down-regulated genes (LFC\<0) with respect to the control variable. Other information is also given, such as the number of outliers and low counts.
 
-> _Question:_ What do you notice about these results?
+> *Question:* What do you notice about these results?
 
 `r hide("Show Answer")`
 
-It seems like the dorsal vs. ventral comparisons are producing many more up and down regulated genes than the black vs. white comparison. This indicates that not all skin is the same! At the level of gene expression, the change in pigmentation on the dorsum is minimal compared to the difference in gene expression between dorsal and ventral skin of much similar colour!
-`r unhide()`
-
+It seems like the dorsal vs. ventral comparisons are producing many more up and down regulated genes than the black vs. white comparison. This indicates that not all skin is the same! At the level of gene expression, the change in pigmentation on the dorsum is minimal compared to the difference in gene expression between dorsal and ventral skin of much similar colour! `r unhide()`
 
 ## MA plots
 
@@ -313,16 +306,9 @@ DESeq2::plotMA(res_bV_wV, main="Black Ventral vs. White Ventral")
 par(mfrow=c(1,1))
 ```
 
+> *Question:* Have you seen this kind of plot before? What can we say from these plots?
 
-> _Question:_ Have you seen this kind of plot before? What can we say from these plots?
-
-`r hide("Show Answer")`
-* It demonstrates that only genes with a large average normalized count contain sufficient information to be significant
-* The same as from the summary() function:
-  * Dorsal-ventral comparisons result in more differential expressed genes (DEGs), than black-white comparisons?
-  * DEGs are more or less evenly up (positive fold changes) and down (negative fold changes) regulated for each comparison
-* There is a lot of noise for genes with genes with low normalized counts.
-`r unhide()`
+`r hide("Show Answer")` \* It demonstrates that only genes with a large average normalized count contain sufficient information to be significant \* The same as from the summary() function: \* Dorsal-ventral comparisons result in more differential expressed genes (DEGs), than black-white comparisons? \* DEGs are more or less evenly up (positive fold changes) and down (negative fold changes) regulated for each comparison \* There is a lot of noise for genes with genes with low normalized counts. `r unhide()`
 
 We can squeeze even more information out of these kinds of plots by getting creative with ggplot.
 
@@ -340,8 +326,7 @@ res_bD_bV %>%
   theme_bw()
 ```
 
-Here, we can see more clearly that genes with low counts do not have p-adjusted values (points in grey). The  density contours are also centered around a y-intercept of 0 (most genes are not differentially expressed)
-
+Here, we can see more clearly that genes with low counts do not have p-adjusted values (points in grey). The density contours are also centered around a y-intercept of 0 (most genes are not differentially expressed)
 
 ## Exporting data
 
@@ -367,12 +352,9 @@ saveRDS(list(
 saveRDS(dds, "./results/deseq2_dds.rds")
 ```
 
-
-
-
 ## Extras - Diagnostics
 
-At this point, we can do some quality checks, to make sure that all of the steps that `DESeq2 `has done, worked as expected. For example:
+At this point, we can do some quality checks, to make sure that all of the steps that `DESeq2`has done, worked as expected. For example:
 
 ### P-value distributions
 
@@ -389,35 +371,31 @@ hist(res_bV_wV$pvalue, breaks=50, col="grey", main="bV_wV")
 par(mfrow=c(1,1))
 ```
 
-All-in-all, not bad. In all cases, we see the expected "enrichment" of genes with low p-values and then a relatively uniform/rectangular distribution for all other p-values. It is not perfect, and there is a little bit of a hill-shape with higher p-values. IF this were more extreme (both hill-shaped or  U-shaped distributions) you may want to try to remove outliers or fit models with more than one dispersion parameter (see [here](https://www.huber.embl.de/users/klaus/Teaching/DESeq2Predoc2014.html) for example, or look up [local dispersion](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#local-or-mean-dispersion-fit), in the DESeq2 handbook).
+This is good example of the different kinds of distributions that you may encounter. In all cases, we see the expected "enrichment" of genes with low p-values. This is good, but what we want to see ideally, is a relatively uniform/rectangular distribution for all other p-values. We can see this especially for the bV_wV plot. For some of the other comparisons we can see a little bit of a hill-shape sloping up as we get to higher p-values, and even a little but of a U-shape. If this were more extreme (both hill-shaped or U-shaped distributions) you may want to try to remove outliers or fit models with more than one dispersion parameter (see [here](https://www.huber.embl.de/users/klaus/Teaching/DESeq2Predoc2014.html) for example, or look up [local dispersion](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#local-or-mean-dispersion-fit), in the DESeq2 handbook).
 
 ### Dispersion plots
 
 To accurately model sequencing counts, we need to generate accurate estimates of within-group variation (variation between biological replicates of the same treatment/condition group) for each gene. With only a few (usually 3) replicates per group, the estimates of variation for each gene are often unreliable (due to the large differences in dispersion for genes with similar means).
 
 To address this problem, DESeq2 shares information across genes to generate more accurate estimates of variation based on the mean expression level of the gene using a method called ‘shrinkage’. DESeq2 assumes that genes with similar expression levels have similar dispersion.
-  
-Estimating the dispersion for each gene separately:
-  
+
 To model the dispersion based on expression level (mean counts of replicates), the dispersion for each gene is estimated using maximum likelihood estimation. In other words, given the count values of the replicates, the most likely estimate of dispersion is calculated.
-  
-We can easily plot these dispersion estimates.
-  
+
+We can plot these dispersion estimates to get an idea of what this looks like.
+
 ```{r}
 plotDispEsts(dds)
 ```
 
-* The red dots are the expected dispersion of each gene, given the size of the count, that is estimated by the model.
-* The black dots are the normalized expression levels (counts) and estimated dispersion for each gene.
-* The blue points are the same genes, but 'shrunk' towards the values predicted by the model (the red line). Genes that were not shrunk are outlined in blue
+-   The red dots are the expected dispersion of each gene, given the size of the count, that is estimated by the model.
+-   The black dots are the normalized expression levels (counts) and estimated dispersion for each gene.
+-   The blue points are the same genes, but 'shrunk' towards the values predicted by the model (the red line). Genes that were not shrunk are outlined in blue
 
-> _Question:_ What are some interesting things to note about this plot?
+> *Question:* What are some interesting things to note about this plot?
 
 `r hide("Show Answer")`
 
-* Genes with low counts have higher dispersion, but this curve flattens out.
-* Genes that have much higher dispersion than expected are identified as outliers (black dot with blue circles). These are NOT "shrunk". This is due to the likelihood that the gene does not follow the modeling assumptions and has higher variability than others for biological or technical reasons. Shrinking these could result in the detection of false positives.
-`r unhide()`
+-   Genes with low counts have higher dispersion, but this curve flattens out.
+-   Genes that have much higher dispersion than expected are identified as outliers (black dot with blue circles). These are NOT "shrunk". This is due to the likelihood that the gene does not follow the modeling assumptions and has higher variability than others for biological or technical reasons. Shrinking these could result in the detection of false positives. `r unhide()`
 
 All-in-all it looks good!
-
